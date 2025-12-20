@@ -10,7 +10,7 @@ CFLAGS := -Wall -g
 HDRS := RSA_Seuil.h
 
 # Fichiers sources du projet
-SRCS := Keccak.c RSA_Seuil.c Signature_Gen.c Signature_Share.c
+SRCS := Keccak.c RSA_Seuil.c Signature_Gen.c Signature_Share.c Misc.c Dealer_functions.c
 
 # Fichiers objects associés aux fichiers sources
 OBJS := $(SRCS:.c=.o)

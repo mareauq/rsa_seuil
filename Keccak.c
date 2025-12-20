@@ -331,29 +331,3 @@ void Keccak(unsigned int rate, unsigned int capacity, const unsigned char *input
             KeccakF1600_StatePermute(state);
     }
 }
-
-
-// int main(int argc, char const *argv[])
-// {
-//     unsigned int rate = 1200;
-//     unsigned int capacity = 1600 - rate;
-//     unsigned char* input = calloc(4, sizeof(unsigned char));
-//     unsigned long long int inputByteLen = 4;
-//     unsigned char* output = calloc(1600, sizeof(unsigned char));;
-//     unsigned long long int outputByteLen = 4;
-//     unsigned char delimitedSuffix = 0x01;
-
-//     //Keccak(rate, capacity, input, inputByteLen, delimitedSuffix, output, outputByteLen);
-
-//     clock_t begin = clock();
-//     for(int i = 0; i < 100000; i++)
-//     {
-//         KeccakF1600_StatePermute(output);
-//     }
-//     clock_t end = clock();
-//     double time = (double)(end - begin)/CLOCKS_PER_SEC;
-
-//     printf("Durée : %f\n", time);
-
-//     return 0;
-// }
