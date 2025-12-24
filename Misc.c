@@ -5,6 +5,35 @@ void ask_players_param() //Pas sûr de celle-là, d'ailleurs elle est restée vi
 
 }
 
+unsigned int ask_Message(unsigned char** Message) // Affecte le message entré à la chaîne Message et renvoit la taille du message
+{
+    printf("Entrer le message à signer : ");
+
+    int c;
+    unsigned int Message_size = 0;
+
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+        unsigned char* tmp = realloc(*Message, Message_size + 2);
+        if (!tmp)
+        {
+            free(*Message);
+            *Message = NULL;
+            printf("Problème d'allocation mémoire au cours de taille %d\n", Message_size + 2);
+            return 0;
+        }
+        *Message = tmp;
+        (*Message)[Message_size] = c;
+        Message_size++;
+    }
+
+    Message[Message_size] = '\0';
+    
+    return Message_size;
+}
+
+
+
 mpz_t* init_mpz_ptr(unsigned int size) // Initialise et renvoit un tableau d'entiers mpz de taille size  
 {
     mpz_t* ptr = malloc(size*sizeof(mpz_t));
@@ -52,14 +81,24 @@ void eval_poly_mod_ui(mpz_t eval, mpz_t* coeffs, unsigned int deg, unsigned long
     }
 }
 
+void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Result)
+{
+    mpz_set_ui(Result, 0);
 
+    for (int i = 0; i < BytesLen - 1; i++)
+    {
+        mpz_add_ui(Result, Result, Bytes[i]);
+        mpz_mul_2exp(Result, Result, (mp_bitcnt_t)8);
+    }
+
+    mpz_add_ui(Result, Result, Bytes[BytesLen - 1]);
+}
 
 void msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé SHA3 d'un message de taille MessageByteLen sous forme d'un entier mpz
 {
-    unsigned char* output = malloc(64*sizeof(unsigned char));
+    unsigned char output[64];
     FIPS202_SHA3_512(Message, MessageByteLen, output);
 
-    mpz_set_str(Hashed_Message, (const char*)output, 10);
+    bytes_to_mpz(output, 64, Hashed_Message);
 
-    free(output);
 }

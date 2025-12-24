@@ -6,42 +6,49 @@
 
 // Les nombres premiers en jeux sont de la forme 2p' + 1 avec p' premier
 
-void get_private_keys(mpz_t p, mpz_t q) // Associe à p et q les valeurs des nombres premiers de Sophie Germain sûrs contenus dans le fichier associé
+void get_private_primes(mpz_t p, mpz_t q) // Associe à p et q les valeurs des nombres premiers de Sophie Germain sûrs contenus dans le fichier associé
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Private_keys.txt", "r");
+    fptr = fopen("./Dealer/Private_primes.txt", "r");
 
-    char key[10000]; // On suppose les clés secrètes de tailles inférieur à 10000 symboles en base 10
+    char key[1000]; // On suppose les clés secrètes de tailles inférieur à 1000 symboles en haxadécimal
 
-    fgets(key, 10000, fptr);
-    mpz_set_str(p, key, 10);
-    fgets(key, 10000, fptr);
-    mpz_set_str(q, key, 10);
+    fgets(key, 1000, fptr);
+    mpz_set_str(p, key, 16);
+    fgets(key, 1000, fptr);
+    mpz_set_str(q, key, 16);
 
     fclose(fptr);
 }
 
-void write_public_key(mpz_t n) // Ecrit dans le fichier correspondant la clé publique n = p*q
+void write_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant la clé publique (n,e) avec n = p*q
 {
     FILE* fptr;
     fptr = fopen("./Dealer/Public_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 10, n);
+    char* key = mpz_get_str(NULL, 16, n);
+
+    fprintf(fptr, "%s\n", key);
+
+    key = mpz_get_str(NULL, 16, e);
 
     fprintf(fptr, "%s\n", key);
 
     fclose(fptr);
 }
 
-void get_public_key(mpz_t n) // Associe à n le module RSA contenu dans le fichier correspondant
+void get_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'exposant de chiffrement contenus dans le fichier correspondant
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Public_key.txt", "r");
+    fptr = fopen("./Dealer/Public_keys.txt", "r");
 
-    char key[10000]; // On suppose les clés secrètes de tailles inférieur à 10000 symboles en base 10
+    char key[1000]; // On suppose les clés secrètes de tailles inférieur à 1000 symboles en héxadécimal
 
-    fgets(key, 10000, fptr);
-    mpz_set_str(n, key, 10);
+    fgets(key, 1000, fptr);
+    mpz_set_str(n, key, 16);
+
+    fgets(key, 1000, fptr);
+    mpz_set_str(e, key, 16);
 
     fclose(fptr);
 }
@@ -116,7 +123,7 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
     FILE* fptr;
     fptr = fopen("./Dealer/Secret_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 10, SKs[0]);
+    char* key = mpz_get_str(NULL, 16, SKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -130,7 +137,7 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
 
         snprintf(file_path, sizeof(file_path), "./Player_%d/Secret_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, 10, SKs[i]);
+        key = mpz_get_str(NULL, 16, SKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
     }    
@@ -141,7 +148,7 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     FILE* fptr;
     fptr = fopen("./Dealer/Verification_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 10, VKs[0]);
+    char* key = mpz_get_str(NULL, 16, VKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -151,7 +158,7 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     {
         snprintf(file_path, sizeof(file_path), "./Player_%d/Verification_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, 10, VKs[i]);
+        key = mpz_get_str(NULL, 16, VKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
     }    
