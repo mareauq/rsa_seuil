@@ -27,16 +27,32 @@ unsigned int ask_Message(unsigned char** Message) // Affecte le message entré �
         Message_size++;
     }
 
-    Message[Message_size] = '\0';
+    (*Message)[Message_size] = '\0'; 
     
     return Message_size;
 }
 
+unsigned int str_len(unsigned char* str)
+{
+    unsigned int len = 0;
 
+    while(str[len] != '\0')
+    {
+        len++;
+    }
+
+    return len;
+}
 
 mpz_t* init_mpz_ptr(unsigned int size) // Initialise et renvoit un tableau d'entiers mpz de taille size  
 {
     mpz_t* ptr = malloc(size*sizeof(mpz_t));
+
+    if(!ptr)
+    {
+        printf("Problème d'allocation mémoire\n");
+        return NULL;
+    }
 
     for (int i = 0; i < size; i++)
     {
@@ -81,7 +97,7 @@ void eval_poly_mod_ui(mpz_t eval, mpz_t* coeffs, unsigned int deg, unsigned long
     }
 }
 
-void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Result)
+void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Result) // Encode une chaîne de caractère en un entier mpz 
 {
     mpz_set_ui(Result, 0);
 
@@ -94,11 +110,53 @@ void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Resul
     mpz_add_ui(Result, Result, Bytes[BytesLen - 1]);
 }
 
-void msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé SHA3 d'un message de taille MessageByteLen sous forme d'un entier mpz
+void main_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille MAIN_HASHED_MESSAGES_BYTES_LEN
 {
-    unsigned char output[64];
-    FIPS202_SHA3_512(Message, MessageByteLen, output);
+    unsigned char output[MAIN_HASHED_MESSAGES_BYTES_LEN];
+    Keccak_1024(Message, MessageByteLen, output);
 
-    bytes_to_mpz(output, 64, Hashed_Message);
+    bytes_to_mpz(output, MAIN_HASHED_MESSAGES_BYTES_LEN, Hashed_Message);
 
+}
+
+void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille SECONDARY_HASHED_MESSAGES_BYTES_LEN
+{
+    unsigned char output[SECONDARY_HASHED_MESSAGES_BYTES_LEN];
+    Keccak_128(Message, MessageByteLen, output);
+
+    bytes_to_mpz(output, SECONDARY_HASHED_MESSAGES_BYTES_LEN, Hashed_Message);
+
+}
+
+unsigned char* mpz_concatenation_to_str(mpz_t* ptr, unsigned int ptr_size)
+{
+    unsigned int concatenation_size = 0;
+    
+    for (int i = 0; i < ptr_size; i++)
+    {
+        concatenation_size += mpz_sizeinbase(ptr[i], HEXA_BASE);
+    }
+
+    unsigned char* concatenation = malloc((concatenation_size + 1) * sizeof(char));
+
+    int concatenation_index = 0;
+
+    for (int i = 0; i < ptr_size; i++)
+    {
+        unsigned char* str = (unsigned char*)mpz_get_str(NULL, HEXA_BASE, ptr[i]);
+        int str_index = 0;
+
+        while (str[str_index] != '\0')
+        {
+            concatenation[concatenation_index] = str[str_index];
+
+            concatenation_index++;
+            str_index++;
+            
+        }
+    }
+
+    concatenation[concatenation_index] = '\0';
+
+    return concatenation;
 }

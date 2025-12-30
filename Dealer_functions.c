@@ -11,12 +11,12 @@ void get_private_primes(mpz_t p, mpz_t q) // Associe à p et q les valeurs des n
     FILE* fptr;
     fptr = fopen("./Dealer/Private_primes.txt", "r");
 
-    char key[1000]; // On suppose les clés secrètes de tailles inférieur à 1000 symboles en haxadécimal
+    char key[MAX_HEXA_MPZ_SIZE]; 
 
-    fgets(key, 1000, fptr);
-    mpz_set_str(p, key, 16);
-    fgets(key, 1000, fptr);
-    mpz_set_str(q, key, 16);
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(p, key, HEXA_BASE);
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(q, key, HEXA_BASE);
 
     fclose(fptr);
 }
@@ -26,11 +26,11 @@ void write_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant 
     FILE* fptr;
     fptr = fopen("./Dealer/Public_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 16, n);
+    char* key = mpz_get_str(NULL, HEXA_BASE, n);
 
     fprintf(fptr, "%s\n", key);
 
-    key = mpz_get_str(NULL, 16, e);
+    key = mpz_get_str(NULL, HEXA_BASE, e);
 
     fprintf(fptr, "%s\n", key);
 
@@ -42,13 +42,13 @@ void get_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'e
     FILE* fptr;
     fptr = fopen("./Dealer/Public_keys.txt", "r");
 
-    char key[1000]; // On suppose les clés secrètes de tailles inférieur à 1000 symboles en héxadécimal
+    char key[MAX_HEXA_MPZ_SIZE];
 
-    fgets(key, 1000, fptr);
-    mpz_set_str(n, key, 16);
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(n, key, HEXA_BASE);
 
-    fgets(key, 1000, fptr);
-    mpz_set_str(e, key, 16);
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(e, key, HEXA_BASE);
 
     fclose(fptr);
 }
@@ -97,6 +97,7 @@ mpz_t* gen_players_vk(unsigned int nbr_players, mpz_t* SKs, mpz_t n) // Génère
     mpz_t v;
     mpz_init(v);
     mpz_urandomm(v, rand, n);
+    mpz_powm_ui(v, v, 2, n); // On s'assure que v est un carré dans Z_n
 
     mpz_t* VKs = init_mpz_ptr(nbr_players + 1);
     mpz_set(VKs[0], v);
@@ -123,7 +124,7 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
     FILE* fptr;
     fptr = fopen("./Dealer/Secret_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 16, SKs[0]);
+    char* key = mpz_get_str(NULL, HEXA_BASE, SKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -137,7 +138,7 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
 
         snprintf(file_path, sizeof(file_path), "./Player_%d/Secret_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, 16, SKs[i]);
+        key = mpz_get_str(NULL, HEXA_BASE, SKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
     }    
@@ -148,7 +149,7 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     FILE* fptr;
     fptr = fopen("./Dealer/Verification_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, 16, VKs[0]);
+    char* key = mpz_get_str(NULL, HEXA_BASE, VKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -158,11 +159,14 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     {
         snprintf(file_path, sizeof(file_path), "./Player_%d/Verification_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, 16, VKs[i]);
+        key = mpz_get_str(NULL, HEXA_BASE, VKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
     }    
 }
+
+/* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
+En pratique, le nombre de joueurs est très largement inférieur à 2^15 */
 
 void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
 {
@@ -173,6 +177,5 @@ void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les f
 
 }
 
-/* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
-En pratique, le nombre de joueurs est très largement inférieur à 2^15 */
+
 

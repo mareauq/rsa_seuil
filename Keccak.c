@@ -121,6 +121,16 @@ void FIPS202_SHA3_512(const unsigned char *input, unsigned int inputByteLen, uns
     Keccak(576, 1024, input, inputByteLen, 0x06, output, 64);
 }
 
+void Keccak_1024(const unsigned char *input, unsigned int inputByteLen, unsigned char *output)
+{
+    Keccak(576, 1024, input, inputByteLen, 0x06, output, 128);
+}
+
+void Keccak_128(const unsigned char *input, unsigned int inputByteLen, unsigned char *output)
+{
+    Keccak(1344, 256, input, inputByteLen, 0x1F, output, 16);
+}
+
 /*
 ================================================================
 Technicalities
