@@ -1,4 +1,4 @@
-#include "RSA_Seuil.h"
+#include "RSA_Threshold.h"
 
 
 /* Gestion des secrets de l'autorité */
@@ -53,6 +53,57 @@ void get_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'e
     fclose(fptr);
 }
 
+void change_dealer_parameters()
+{
+    FILE* fptr;
+    
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    mpz_t p, q, n;
+    mpz_inits(p, q, n, NULL);
+
+    printf("Il est rappelé que les nombres p et q doivent être premiers, différents et de la forme 2p' + 1 et 2q' + 1 avec p', q' deux nombres aussi premiers. Pour des raisons de sécurité, il est conseillé de choisir des nombres premiers de taille proche de 512 bits. Enfin la taille de ces entiers ne doit pas dépasser 512 bits\n");
+
+    // Modification des nombres premiers cachés
+
+    fptr = fopen("./Dealer/Private_primes.txt", "w");
+
+    printf("Veuillez écrire p en hexadécimal : ");
+    fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
+
+    fprintf(fptr, "%s", key);
+
+    mpz_set_str(p, key, HEXA_BASE);
+
+    printf("Veuillez écrire q en hexadécimal : ");
+    fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
+
+    fprintf(fptr, "%s", key);
+
+    mpz_set_str(q, key, HEXA_BASE);
+
+    fclose(fptr);
+
+    // Modification des clés publiques
+
+    fptr = fopen("./Dealer/Public_keys.txt", "w");
+
+    mpz_mul(n, p, q);
+    mpz_get_str(key, HEXA_BASE, n);
+
+    fprintf(fptr, "%s\n", key);
+
+    printf("Il est rappelé que l'exposant publique e doit être premier et supérieur au nombre de joueurs (la valeur conseillée est 10001).\n");
+
+    printf("Veuillez écrire e en hexadécimal : ");
+    fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
+
+    fprintf(fptr, "%s", key);
+
+    fclose(fptr);
+
+    mpz_clears(p, q, n, NULL);
+}
 
 /* Gestion des secrets des joueurs */
 
@@ -167,6 +218,40 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
 
 /* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
 En pratique, le nombre de joueurs est très largement inférieur à 2^15 */
+
+void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
+{
+    mpz_t p, q, n, m, e, d;
+    mpz_inits(p, q, n, m, e, d, NULL);
+
+    get_private_primes(p, q);
+    get_public_keys(n, e);
+
+    // On calcule p' = (p - 1)/2 et q' = (q - 1)/2, m = p' * q' et d tel que ed = 1 mod m
+
+    mpz_sub_ui(p, p, 1);
+    mpz_tdiv_q_2exp(p, p, 1);
+
+    mpz_sub_ui(q, q, 1);
+    mpz_tdiv_q_2exp(q, q, 1);
+
+    mpz_mul(m, p, q);
+
+    mpz_invert(d, e, m);
+
+    // On génère les clés
+
+    mpz_t* SKs = gen_players_sk(nbr_players, needed_signatures, d, m);
+    mpz_t* VKs = gen_players_vk(nbr_players, SKs, n);
+
+    write_players_sk(nbr_players, SKs);
+    write_players_vk(nbr_players, VKs);
+
+    free_mpz_ptr(SKs, nbr_players);
+    free_mpz_ptr(VKs, nbr_players);
+
+    mpz_clears(p, q, n, m, e, d, NULL);
+}
 
 void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
 {

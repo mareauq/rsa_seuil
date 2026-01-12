@@ -1,4 +1,4 @@
-#include "RSA_Seuil.h"
+#include "RSA_Threshold.h"
 
 /*
 Implementation by the Keccak Team, namely, Guido Bertoni, Joan Daemen,
