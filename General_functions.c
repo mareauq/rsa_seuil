@@ -108,10 +108,13 @@ int get_bounded_numbers_from_str(char* string, unsigned int amount_numbers_expec
     return 1;
 }
 
-int lambda(unsigned int* set, unsigned int set_size, unsigned int i, unsigned int j, unsigned int Delta)
+int lambda_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigned int i, unsigned int j, mpz_t Delta)
 {
-    int res = Delta;
-    int tmp = 1;
+    mpz_t tmp;
+    mpz_init(tmp);
+
+    mpz_set_ui(res, 1);
+    mpz_set_ui(tmp, 1);
 
     for (int k = 0; k < set_size; k++)
     {
@@ -125,14 +128,17 @@ int lambda(unsigned int* set, unsigned int set_size, unsigned int i, unsigned in
         
         if (j != j_prime)
         {
-            res = res * (i - j_prime);
-            tmp = tmp * (j - j_prime);
+            mpz_mul_si(res, res, (int)i - j_prime);
+            mpz_mul_si(tmp, tmp, (int)j - j_prime);
         }
     }
 
-    res = res / tmp;
+    mpz_tdiv_q(tmp, Delta, tmp);
+    mpz_mul(res, res, tmp);
     
-    return res;
+    mpz_clear(tmp);
+
+    return 1;
 }
 
 /* Fonctions relatives aux entier de gmp */
@@ -217,6 +223,8 @@ unsigned char* mpz_concatenation_to_str(mpz_t* ptr, unsigned int ptr_size) // Co
             str_index++;
             
         }
+
+        free(str);
     }
 
     concatenation[concatenation_index] = '\0';
@@ -241,12 +249,13 @@ void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Resul
     mpz_add_ui(Result, Result, Bytes[BytesLen - 1]);
 }
 
-void main_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille MAIN_HASHED_MESSAGES_BYTES_LEN
+void main_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message, mpz_t n) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille MAIN_HASHED_MESSAGES_BYTES_LEN
 {
     unsigned char output[MAIN_HASHED_MESSAGES_BYTES_LEN];
     Keccak_1024(Message, MessageByteLen, output);
 
     bytes_to_mpz(output, MAIN_HASHED_MESSAGES_BYTES_LEN, Hashed_Message);
+    mpz_tdiv_r(Hashed_Message, Hashed_Message, n);
 
 }
 

@@ -4,32 +4,38 @@
 CC := gcc
 
 # Flags de compilation utilisés
-CFLAGS := -Wall -g
+CFLAGS := -Wall -g -fsanitize=address
 
 # Headers du projet
 HDRS := RSA_Seuil.h
 
 # Fichiers sources du projet
-SRCS := Keccak.c RSA_Threshold.c Players_functions.c Coordinator_functions.c General_functions.c Dealer_functions.c Verifier_functions.c
+RSA_SRCS := Keccak.c RSA_Threshold.c Players_functions.c Coordinator_functions.c General_functions.c Dealer_functions.c Verifier_functions.c
+EL_GAMAL_SRCS := Keccak.c General_functions.c
 
 # Fichiers objects associés aux fichiers sources
-OBJS := $(SRCS:.c=.o)
+RSA_OBJS := $(RSA_SRCS:.c=.o)
+EL_GAMAL_OBJS := $(EL_GAMAL_SRCS:.c=.o)
 
 # Nom des exécutables
-EXEC := Signature
+RSA_EXEC := Signature_RSA
+EL_GAMAL_EXEC := Chiffrement_El_Gamal
 
 # Nom des bibliothèques
 LIBS := -lgmp
 
 # Recette de compliation
-all: $(EXEC)
+all: $(RSA_EXEC) $(EL_GAMAL_EXEC)
 
-$(EXEC): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(CFLAGS) $(LIBS)
+$(RSA_EXEC): $(RSA_OBJS)
+	$(CC) -o $@ $(RSA_OBJS) $(CFLAGS) $(LIBS)
+
+$(EL_GAMAL_EXEC): $(EL_GAMAL_OBJS)
+	$(CC) -o $@ $(EL_GAMAL_OBJS) $(CFLAGS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 # Clean du projet
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(RSA_EXEC) $(EL_GAMAL_EXEC) *.o

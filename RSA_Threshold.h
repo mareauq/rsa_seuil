@@ -3,6 +3,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <gmp.h>
 
 /* Notes : - J'hésite à ajouter sur chaqu fonction un flag pour dire si elle est interne (n'accede à aucune donnée autre que celle du joueur/coord/dealer concerné),
@@ -51,7 +52,7 @@ mpz_t* init_mpz_ptr(unsigned int);
 void free_mpz_ptr(mpz_t*, unsigned int);
 void eval_poly_mod(mpz_t, mpz_t*, unsigned int, mpz_t, mpz_t);
 void eval_poly_mod_ui(mpz_t, mpz_t*, unsigned int, unsigned long, mpz_t);
-int lambda(unsigned int*, unsigned int, unsigned int, unsigned int, unsigned int);
+int lambda_function(mpz_t, unsigned int*, unsigned int, unsigned int, unsigned int, mpz_t);
 unsigned char* mpz_concatenation_to_str(mpz_t*, unsigned int);
 
 
@@ -61,7 +62,7 @@ unsigned char* mpz_concatenation_to_str(mpz_t*, unsigned int);
 void Keccak_1024(const unsigned char*, unsigned int, unsigned char*);
 void Keccak_128(const unsigned char*, unsigned int, unsigned char*);
 void bytes_to_mpz(const unsigned char*, unsigned int, mpz_t);
-void main_msg_hash_to_mpz(const unsigned char*, unsigned int, mpz_t);
+void main_msg_hash_to_mpz(const unsigned char*, unsigned int, mpz_t, mpz_t);
 void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message);
 
 
@@ -81,6 +82,7 @@ mpz_t* gen_players_vk(unsigned int, mpz_t*, mpz_t);
 void write_players_sk(unsigned int, mpz_t*);
 void write_players_vk(unsigned int, mpz_t*);
 void full_players_and_keys_gen(unsigned int, unsigned int);
+void send_players_param(unsigned int, unsigned int);
 void clear_players_files_and_folders(unsigned int);
 
 
@@ -90,26 +92,27 @@ void clear_players_files_and_folders(unsigned int);
 void get_private_keys(mpz_t, mpz_t);
 void write_public_keys(mpz_t, mpz_t);
 void get_player_secret_key(mpz_t, unsigned int);
-void gen_player_signature(mpz_t, mpz_t, mpz_t, unsigned int, mpz_t);
-void gen_proof_of_correctness(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, unsigned int, mpz_t);
+void gen_player_signature(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
+void gen_proof_of_correctness(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
 void send_player_signature(unsigned int, mpz_t);
 void send_player_PoC(unsigned int, mpz_t, mpz_t);
-void full_player_signature_and_PoC(mpz_t, unsigned int, unsigned char*, unsigned int, unsigned int, mpz_t);
+void full_player_signature_and_PoC(mpz_t, unsigned int, unsigned char*, unsigned int, mpz_t, mpz_t);
 
 
 /* Prototypes : Fonctions du coordinateur */
 
+void get_players_param(unsigned int*, unsigned int*);
 void get_player_verification_key(mpz_t, unsigned int);
 void get_dealer_verification_key(mpz_t);
-int check_proof_of_correctness(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, unsigned int, mpz_t);
-void full_message_signature(unsigned char*, unsigned int, unsigned int, unsigned int*, unsigned int);
+int check_proof_of_correctness(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
+void full_message_signature(char*, mpz_t, unsigned char*, unsigned int, unsigned int*, unsigned int*, unsigned int*, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
 void send_signed_message(unsigned char*, mpz_t);
-int request_players_signatures_and_PoC(mpz_t, char*, unsigned int*, unsigned int, unsigned char*, unsigned int, unsigned int, mpz_t);
+int request_players_signatures_and_PoC(mpz_t, char*, unsigned int*, unsigned int, unsigned char*, unsigned int, mpz_t, mpz_t);
 void coord_get_Signature(unsigned int, mpz_t);
 void coord_get_PoC(unsigned int, mpz_t, mpz_t);
-int check_all_PoC(unsigned int*, unsigned int, mpz_t, mpz_t, unsigned int, mpz_t);
-void combine_signatures(mpz_t, mpz_t, unsigned int*, unsigned int, unsigned int, mpz_t, mpz_t);
-
+int check_all_PoC(unsigned int*, unsigned int, mpz_t, mpz_t, mpz_t, mpz_t);
+void combine_signatures(mpz_t, mpz_t, unsigned int*, unsigned int, mpz_t, mpz_t, mpz_t);
+void clear_coord_files(unsigned int*, unsigned int);
 
 /* Prototypes : Fonctions du vérifieur */
 

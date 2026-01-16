@@ -1,20 +1,6 @@
 #include "RSA_Threshold.h"
 
 
-// unsigned char* verifier_get_Message()
-// {
-//     FILE* fptr;
-//     fptr = fopen("./Verifier/Message.txt", "r");
-
-//     unsigned char Message[MAX_HEXA_MPZ_SIZE]; // À changer pour taille quelconque ! (Réadapter ask_message)
-
-//     fgets(Message, MAX_HEXA_MPZ_SIZE, fptr); 
-
-//     fclose(fptr);
-
-//     return Message;
-// }
-
 unsigned int verifier_get_Message(unsigned char** Message)
 {
     FILE* fptr;
@@ -66,8 +52,6 @@ int verify_message_signature(mpz_t Hashed_Message, mpz_t Signature, mpz_t e, mpz
     mpz_init(tmp);
 
     mpz_powm(tmp, Signature, e, n);
-
-    gmp_printf("y^e = %Zx\nx = %Zx\n", tmp, Hashed_Message);
 
     int valid_signature = (mpz_cmp(tmp, Hashed_Message) == 0);
 

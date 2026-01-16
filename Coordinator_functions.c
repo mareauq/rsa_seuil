@@ -2,6 +2,22 @@
 
 
 
+void get_players_param(unsigned int* nbr_player, unsigned int* needed_signature)
+{
+
+    FILE* fptr;
+    fptr = fopen("./Coordinator/Players_param.txt", "r");
+
+    char param[BUFFER_SIZE]; 
+
+    fgets(param, BUFFER_SIZE, fptr);
+    *nbr_player = atoi(param);
+    fgets(param, BUFFER_SIZE, fptr);
+    *needed_signature = atoi(param);
+
+    fclose(fptr);
+}
+
 void get_player_verification_key(mpz_t Player_VK, unsigned int Player) // Récupère la clé de vérification du joueur Player
 {
     char key_path[60];
@@ -33,7 +49,7 @@ void get_dealer_verification_key(mpz_t Dealer_VK) // Récupère la clé de véri
     fclose(fptr);
 }
 
-int check_proof_of_correctness(mpz_t Player_signature, mpz_t Player_VK, mpz_t Dealer_VK, mpz_t Proof_z, mpz_t Proof_c, mpz_t Hashed_Message, unsigned int Delta, mpz_t n)
+int check_proof_of_correctness(mpz_t Player_signature, mpz_t Player_VK, mpz_t Dealer_VK, mpz_t Proof_z, mpz_t Proof_c, mpz_t Hashed_Message, mpz_t Delta, mpz_t n)
 {
     mpz_t tmp, Proof_c_prime;
     mpz_inits(tmp, Proof_c_prime, NULL);
@@ -43,7 +59,8 @@ int check_proof_of_correctness(mpz_t Player_signature, mpz_t Player_VK, mpz_t De
 
     mpz_set(ptr_for_concatenation[0], Dealer_VK);
 
-    mpz_powm_ui(ptr_for_concatenation[1], Hashed_Message, 4 * Delta, n);
+    mpz_mul_ui(tmp, Delta, 4);
+    mpz_powm(ptr_for_concatenation[1], Hashed_Message, tmp, n);
     
     mpz_set(ptr_for_concatenation[2], Player_VK);
 
@@ -63,10 +80,11 @@ int check_proof_of_correctness(mpz_t Player_signature, mpz_t Player_VK, mpz_t De
 
     unsigned char* concatenation_for_hash = mpz_concatenation_to_str(ptr_for_concatenation, 6);
 
-    free_mpz_ptr(ptr_for_concatenation, 6);
-
     unsigned int Input_Byte_Len = str_len(concatenation_for_hash);
     secondary_msg_hash_to_mpz(concatenation_for_hash, Input_Byte_Len, Proof_c_prime);
+
+    free(concatenation_for_hash);
+    free_mpz_ptr(ptr_for_concatenation, 6);
 
     if (mpz_cmp(Proof_c, Proof_c_prime) == 0)
     {
@@ -114,7 +132,7 @@ void coord_get_PoC(unsigned int Player, mpz_t Proof_z, mpz_t Proof_c)
 }
 
 
-int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures, mpz_t Dealer_VK, mpz_t Hashed_Message, unsigned int Delta, mpz_t n)
+int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures, mpz_t Dealer_VK, mpz_t Hashed_Message, mpz_t Delta, mpz_t n)
 {
     mpz_t Player_Signature, Player_VK, Proof_z, Proof_c;
     mpz_inits(Player_Signature, Player_VK, Proof_z, Proof_c, NULL);
@@ -131,7 +149,7 @@ int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures
 
         if (!valid_signature)
         {
-            printf("La signature du joueur %u n'est pas valide.\n", Player);
+            printf("La signature du joueur %u n'est pas valide.\n\n", Player);
 
             mpz_clears(Player_Signature, Player_VK, Proof_z, Proof_c, NULL);
             return 0;
@@ -140,11 +158,11 @@ int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures
 
     mpz_clears(Player_Signature, Player_VK, Proof_z, Proof_c, NULL);
 
-    printf("Les %u signatures sont valides\n", needed_signatures);
+    printf("Les %u signatures sont valides\n\n", needed_signatures);
     return 1;
 }
 
-int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, unsigned char* Message, unsigned int Message_size, unsigned int Delta, mpz_t n)
+int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, unsigned char* Message, unsigned int Message_size, mpz_t Delta, mpz_t n)
 {    
     for (int i = 0; i < needed_signatures; i++)
     {
@@ -153,7 +171,7 @@ int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned i
         printf("Requête de signature au joueur %u :\n \n", Player);
         printf("Le message à signer est : %c%s%c\n", '"', Message, '"');
         printf("Voulez-vous signer ?\n");
-        printf("o/O : Oui     p/P : Oui mais avec un signature falsifiée     n/N : Non\n");
+        printf("o/O : Oui     n/N : Non\n");
 
         char option;
         int option_chosen = 0;
@@ -170,13 +188,6 @@ int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned i
                     option_chosen = 1;
                     full_player_signature_and_PoC(Dealer_VK, Player, Message, Message_size, Delta, n);
                     
-                    break;
-
-                
-                case 'm':
-                case 'M':
-
-                    // A faire plus tard
                     break;
 
                 case 'n':
@@ -198,7 +209,7 @@ int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned i
     return 1;
 }
 
-void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* involved_players, unsigned int needed_signatures, unsigned int Delta, mpz_t e, mpz_t n)
+void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* involved_players, unsigned int needed_signatures, mpz_t Delta, mpz_t e, mpz_t n)
 {
     mpz_t tmp, w, a, b, e_prime, Player_Signature;
     mpz_inits(tmp, w, a, b, e_prime,  Player_Signature, NULL);
@@ -207,45 +218,88 @@ void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* inv
 
     for (int i = 0; i < needed_signatures; i++)
     {
+        
         unsigned int Player = involved_players[i];
         coord_get_Signature(Player, Player_Signature);
 
-        mpz_set_si(tmp, 2 * lambda(involved_players, needed_signatures, 0, Player, Delta));
+        
+        lambda_function(tmp, involved_players, needed_signatures, 0, Player, Delta);
+
+        mpz_mul_ui(tmp, tmp, 2);
         mpz_powm(tmp, Player_Signature, tmp, n);
+
         mpz_mul(w, w, tmp);
         mpz_tdiv_r(w, w, n);
     }
 
-    mpz_set_ui(e_prime, 4 * Delta * Delta);
-    mpz_gcdext(tmp, a, b, e_prime, e);
 
-    gmp_printf("Le pgcd est %Zd on espère que c'est 1 \n", tmp);
+    mpz_mul(e_prime, Delta, Delta);
+    mpz_mul_ui(e_prime, e_prime, 4);
+    mpz_gcdext(tmp, a, b, e_prime, e);
 
     mpz_powm(tmp, w, a, n);
     mpz_powm(Signature, Hashed_Message, b, n);
+    mpz_mul(Signature, tmp, Signature);
+    mpz_tdiv_r(Signature, Signature, n);
 
-    mpz_clears(tmp, w, a, b, e_prime,  Player_Signature, NULL);
+    mpz_clears(tmp, w, a, b, e_prime, Player_Signature, NULL);
 }
 
-void full_message_signature(unsigned char* Message, unsigned int Message_Size, unsigned int needed_signatures, unsigned int* Players_involved, unsigned int Delta)
+void full_message_signature(char* buffer, mpz_t Hashed_Message, unsigned char* Message, unsigned int Message_size, unsigned int* nbr_players, unsigned int* needed_signatures, unsigned int* involved_players, mpz_t Dealer_VK, mpz_t Signature, mpz_t Delta, mpz_t e, mpz_t n)
 {
-    mpz_t Hashed_Message;
-    mpz_init(Hashed_Message);
+    main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
 
-    main_msg_hash_to_mpz(Message, Message_Size, Hashed_Message);
+    involved_players = malloc((*needed_signatures) * sizeof(unsigned int));
+    ask_involved_players(involved_players, *needed_signatures, *nbr_players);
+    request_players_signatures_and_PoC(Dealer_VK, buffer, involved_players, *needed_signatures, Message, Message_size, Delta, n);
+
+    if (check_all_PoC(involved_players, *needed_signatures, Dealer_VK, Hashed_Message, Delta, n))
+    {
+        combine_signatures(Signature, Hashed_Message,involved_players, *needed_signatures, Delta, e, n);
+        send_signed_message(Message, Signature);
+
+        printf("Message et signature envoyés au vérifieur.\n \n");
+    }
+
+    clear_coord_files(involved_players, *needed_signatures);
+    free(involved_players);
 }
 
 void send_signed_message(unsigned char* Message, mpz_t Signature)
 {
     FILE* fptr;
 
+    printf("Message : %s\n", Message);
+
     fptr = fopen("./Verifier/Message.txt", "w");
     fprintf(fptr, "%s\n", Message);
+
+    fclose(fptr);
 
     fptr = fopen("./Verifier/Signature.txt", "w");
     char* Signature_str = mpz_get_str(NULL, HEXA_BASE, Signature);
     fprintf(fptr, "%s\n", Signature_str);
 
+    free(Signature_str);
     fclose(fptr);
 }
 
+void clear_coord_files(unsigned int* involved_players, unsigned int needed_signatures)
+{
+    char file_path[60];
+
+    for (int i = 0; i < needed_signatures; i++)
+    {
+        unsigned int Player = involved_players[i];
+
+        snprintf(file_path, sizeof(file_path), "./Coordinator/Player_Signature_%d.txt", Player);
+        
+        if (remove(file_path))
+            printf("Problème durant la suppressions à l'adresse : %s\n", file_path);
+
+        snprintf(file_path, sizeof(file_path), "./Coordinator/Player_PoC_%d.txt", Player);
+        
+        if (remove(file_path))
+            printf("Problème durant la suppressions à l'adresse : %s\n", file_path);
+    }
+}

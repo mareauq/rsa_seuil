@@ -26,11 +26,12 @@ void write_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant 
     FILE* fptr;
     fptr = fopen("./Dealer/Public_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, HEXA_BASE, n);
+    char key[MAX_HEXA_MPZ_SIZE];
+    mpz_get_str(key, HEXA_BASE, n);
 
     fprintf(fptr, "%s\n", key);
 
-    key = mpz_get_str(NULL, HEXA_BASE, e);
+    mpz_get_str(key, HEXA_BASE, e);
 
     fprintf(fptr, "%s\n", key);
 
@@ -175,7 +176,8 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
     FILE* fptr;
     fptr = fopen("./Dealer/Secret_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, HEXA_BASE, SKs[0]);
+    char key[MAX_HEXA_MPZ_SIZE];
+    mpz_get_str(key, HEXA_BASE, SKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -189,10 +191,10 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
 
         snprintf(file_path, sizeof(file_path), "./Player_%d/Secret_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, HEXA_BASE, SKs[i]);
+        mpz_get_str(key, HEXA_BASE, SKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
-    }    
+    } 
 }
 
 void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque joueur sa clé de vérification (doit être appellée après write_players_sk)
@@ -200,7 +202,8 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     FILE* fptr;
     fptr = fopen("./Dealer/Verification_key.txt", "w");
 
-    char* key = mpz_get_str(NULL, HEXA_BASE, VKs[0]);
+    char key[MAX_HEXA_MPZ_SIZE];
+    mpz_get_str(key, HEXA_BASE, VKs[0]);
 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
@@ -210,10 +213,10 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     {
         snprintf(file_path, sizeof(file_path), "./Player_%d/Verification_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
-        key = mpz_get_str(NULL, HEXA_BASE, VKs[i]);
+        mpz_get_str(key, HEXA_BASE, VKs[i]);
         fprintf(fptr, "%s\n", key);
         fclose(fptr);
-    }    
+    }
 }
 
 /* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
@@ -235,8 +238,8 @@ void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_sig
     mpz_sub_ui(q, q, 1);
     mpz_tdiv_q_2exp(q, q, 1);
 
+    
     mpz_mul(m, p, q);
-
     mpz_invert(d, e, m);
 
     // On génère les clés
@@ -247,19 +250,44 @@ void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_sig
     write_players_sk(nbr_players, SKs);
     write_players_vk(nbr_players, VKs);
 
-    free_mpz_ptr(SKs, nbr_players);
-    free_mpz_ptr(VKs, nbr_players);
+    free_mpz_ptr(SKs, nbr_players + 1);
+    free_mpz_ptr(VKs, nbr_players + 1);
 
     mpz_clears(p, q, n, m, e, d, NULL);
 }
 
+void send_players_param(unsigned int nbr_players, unsigned int needed_signatures)
+{
+    FILE* fptr;
+    fptr = fopen("./Coordinator/Players_param.txt", "w");
+
+    fprintf(fptr, "%d\n", nbr_players);
+    fprintf(fptr, "%d\n", needed_signatures);
+
+    fclose(fptr);
+}
+
 void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
 {
-    
-    
-    // Faudra le faire un jour mais la flemme pour l'instant. En plus on est pas sur de tout ce que contiendra chaque dossier donc bon....
+    char path[60];
 
+    for (int Player = 1; Player <= nbr_players; Player++)
+    {
+        snprintf(path, sizeof(path), "./Player_%d/Secret_key_%d.txt", Player, Player);
+        
+        if (remove(path))
+            printf("Problème durant la suppression à l'adresse : %s\n", path);
 
+        snprintf(path, sizeof(path), "./Player_%d/Verification_key_%d.txt", Player, Player);
+        
+        if (remove(path))
+            printf("Problème durant la suppression à l'adresse : %s\n", path);
+
+        snprintf(path, sizeof(path), "Player_%d", Player);
+        
+        if (rmdir(path))
+            printf("Problème durant la suppression du dossier : %s\n", path);
+    }
 }
 
 
