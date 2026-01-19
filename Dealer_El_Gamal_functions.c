@@ -108,14 +108,6 @@ mpz_t* gen_players_sk(unsigned int nbr_players, unsigned int needed_signatures, 
     return SKs;
 }
 
-mpz_t* calcul_gd(mpz_t g, mpz_t d, mpz_t q) // Calcule g^d, le dernier élément publique
-{
-    mpz_t* tmp;
-    mpz_init(*tmp);
-    mpz_powm(*tmp,g, g, q);
-    return tmp;
-}
-
 void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier à chaque joueur et un fichier contenant sa clé secrète
 {
     FILE* fptr;

@@ -206,7 +206,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
             
             default:
 
-                printf("Entez un caractère valide.\n");
+                printf("Entrez un caractère valide.\n");
                 break;
         }
     }

@@ -33,7 +33,7 @@ void coord_get_decryption(unsigned int Player, mpz_t Player_Signature)
     fclose(fptr);
 }
 
-int request_players_decryption(char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, mpz_t Hashed_Message1, mpz_t q)
+int request_players_decryption(char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, mpz_t Hashed_Message1)
 {    
     for (int i = 0; i < needed_signatures; i++)
     {
@@ -56,7 +56,7 @@ int request_players_decryption(char* buffer, unsigned int* Players_involved, uns
                 case 'O':
 
                     option_chosen = 1;
-                    full_player_decryption(Player, Hashed_Message1, q);
+                    full_player_decryption(Player, Hashed_Message1);
                     
                     break;
 
@@ -79,7 +79,7 @@ int request_players_decryption(char* buffer, unsigned int* Players_involved, uns
     return 1;
 }
 
-void combine_decryption(mpz_t Message, mpz_t Hashed_Message2, unsigned int* involved_players, unsigned int needed_signatures, mpz_t q) // Cette fonction rend le représentant dans le corps Fq du message
+void combine_decryption(mpz_t Message, mpz_t Hashed_Message2, unsigned int* involved_players, unsigned int needed_signatures) // Cette fonction rend le représentant dans le corps Fq du message
 {
     mpz_t tmp, z, Player_Signature;
     mpz_inits(tmp, z, Player_Signature, NULL);
@@ -94,13 +94,12 @@ void combine_decryption(mpz_t Message, mpz_t Hashed_Message2, unsigned int* invo
 
         L_function(tmp, involved_players, needed_signatures, 0, Player);
 
-        mpz_powm(tmp, Player_Signature, tmp, q);
+        fq_pow(tmp, Player_Signature, tmp);
 
-        mpz_mul(z, z, tmp);
-        mpz_tdiv_r(z, z, q);
+        fq_mul(z, z, tmp);
     }
-    mpz_invert(z,z,q);
-    mpz_mul(Message,z,Hashed_Message2);
+    fq_inv(z,z);
+    fq_mul(Message,z,Hashed_Message2);
 
     mpz_clears(tmp,z, Player_Signature, NULL);
 }
@@ -111,9 +110,9 @@ void full_message_decryption(char* buffer, mpz_t Hashed_Message1, mpz_t Hashed_M
 
     involved_players = malloc((*needed_signatures) * sizeof(unsigned int));
     ask_involved_players(involved_players, *needed_signatures, *nbr_players);
-    request_players_decryption(buffer, involved_players, *needed_signatures, Hashed_Message1, q);
+    request_players_decryption(buffer, involved_players, *needed_signatures, Hashed_Message1);
 
-    combine_decryption(Message, Hashed_Message2,involved_players, *needed_signatures, q);
+    combine_decryption(Message, Hashed_Message2,involved_players, *needed_signatures);
     send_decrypted_message(Message, Signature);
 
     printf("Message et message déchiffré envoyés au vérifieur.\n \n");

@@ -1,7 +1,6 @@
 #include "RSA_Threshold.h"
 
 
-
 /* Fonctions générales */
 
 
@@ -141,43 +140,6 @@ int lambda_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigne
     return 1;
 }
 
-int L_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigned int i, unsigned int j)
-{
-    mpz_t tmp;
-    mpz_t q;
-    mpz_init_set_str(q,"80000000",16);
-    mpz_sub_ui(q,q,1);
-    mpz_init(tmp);
-
-    mpz_set_ui(res, 1);
-    mpz_set_ui(tmp, 1);
-
-    for (int k = 0; k < set_size; k++)
-    {
-        int j_prime = set[k];
-
-        if (i == j_prime)
-        {
-            printf("La valeur de i ne doit pas faire partie de l'ensemble set. On renvoit zéro.\n");
-            return 0;
-        }
-        
-        if (j != j_prime)
-        {
-            mpz_mul_si(res, res, (int)i - j_prime);
-            mpz_mul_si(tmp, tmp, (int)j - j_prime);
-        }
-    }
-
-    mpz_invert(tmp, tmp,q);
-    mpz_mul(res, res, tmp);
-    
-    mpz_clear(tmp);
-    mpz_clear(q);
-
-    return 1;
-}
-
 /* Fonctions relatives aux entier de gmp */
 
 
@@ -296,11 +258,8 @@ void main_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByte
 
 }
 
-void main_msg_hash_to_Fq(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message, mpz_t q)
-{
-}
-
 void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille SECONDARY_HASHED_MESSAGES_BYTES_LEN
+
 {
     unsigned char output[SECONDARY_HASHED_MESSAGES_BYTES_LEN];
     Keccak_128(Message, MessageByteLen, output);

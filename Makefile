@@ -7,11 +7,11 @@ CC := gcc
 CFLAGS := -Wall -g -fsanitize=address
 
 # Headers du projet
-HDRS := RSA_Seuil.h
-
+RSA_HDRS := RSA_Seuil.h
+El_GAMAL_HDRS := El_Gamal_Seuil.h
 # Fichiers sources du projet
 RSA_SRCS := Keccak.c RSA_Threshold.c Players_functions.c Coordinator_functions.c General_functions.c Dealer_functions.c Verifier_functions.c
-EL_GAMAL_SRCS := Keccak.c General_functions.c
+EL_GAMAL_SRCS := Keccak.c El_Gamal_Threshold.c Players_El_Gamal_functions.c Coordinator_El_Gamal_functions.c General_functions.c Dealer_El_Gamal_functions.c Verifier_El_Gamal_functions.c
 
 # Fichiers objects associés aux fichiers sources
 RSA_OBJS := $(RSA_SRCS:.c=.o)

@@ -38,7 +38,7 @@ void ask_dealer_parameters(char* buffer)
     }
 }
 
-void ask_players_and_signatures(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures)
+void ask_players_and_decryption(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures)
 {
     int valid_quantity = 0;
                 
@@ -48,7 +48,7 @@ void ask_players_and_signatures(char* buffer, unsigned int* nbr_players, unsigne
         fgets(buffer, BUFFER_SIZE, stdin);
         *nbr_players = (unsigned int)atoi(buffer);
 
-        printf("Entrer le nombre de signatures nécessaires : ");
+        printf("Entrer le nombre de déchiffrements partielles nécessaires : ");
         fgets(buffer, BUFFER_SIZE, stdin);
         *needed_signatures = (unsigned int)atoi(buffer);
 
@@ -96,7 +96,7 @@ void ask_involved_players(unsigned int* involved_players, unsigned int nbr_invol
                 
     int valid_entry = 0;
 
-    printf("Entrez les %u joueurs concernés par la signature, séparés par un espace (exemple : %c2 4 34 2 11%c pour 3 signatures nécessaires)\n", nbr_involved_players, '"', '"');
+    printf("Entrez les %u joueurs concernés par le déchiffrement, séparés par un espace (exemple : %c2 4 34 2 11%c pour 3 déchiffrements nécessaires)\n", nbr_involved_players, '"', '"');
 
     while (!valid_entry)
     {
@@ -110,7 +110,7 @@ void ask_involved_players(unsigned int* involved_players, unsigned int nbr_invol
 
 int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures)
 {
-    mpz_t Signature, Delta, Hashed_Message, Dealer_VK, n, e;
+    mpz_t Signature, Hashed_Message,Hashed_Message1,Hashed_Message2, q,g,gd;
     unsigned char* Message = NULL;
     int Message_size;
     unsigned int* involved_players = NULL;
@@ -121,7 +121,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
     
 
     printf("Que voulez-vous faire ?\n");
-    printf("g/G : Générer de nouveaux joueurs/clés     s/S : Signer un message     v/V : Vérifier une signature     r/R : Supprimer les fichiers des joueurs      q/Q : Quitter le programme\n");
+    printf("g/G : Générer de nouveaux joueurs/clés     s/S : Déchiffrer un message     r/R : Supprimer les fichiers des joueurs      q/Q : Quitter le programme\n");
 
     while (!option_chosen)
     {
@@ -133,7 +133,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
             case 'G':
 
                 option_chosen = 1;
-                ask_players_and_signatures(buffer, nbr_players, needed_signatures);
+                ask_players_and_decryption(buffer, nbr_players, needed_signatures);
                 send_players_param(*nbr_players, *needed_signatures);
                 full_players_and_keys_gen(*nbr_players, *needed_signatures);
 
@@ -149,45 +149,19 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
                 Message = NULL;
                 Message_size = ask_Message(&Message); // Requête du message à signer
 
-                mpz_inits(Signature, Delta, Hashed_Message, Dealer_VK, n, e, NULL);
+                mpz_inits(Signature, Hashed_Message,Hashed_Message1,Hashed_Message2, q, g,gd,NULL);
 
                 get_players_param(nbr_players, needed_signatures);
-                get_public_keys(n, e);
-                get_dealer_verification_key(Dealer_VK);
+                get_public_keys(q,g,gd);
 
-                mpz_fac_ui(Delta, *nbr_players);
-
-                full_message_signature(buffer, Hashed_Message, Message, Message_size, nbr_players, needed_signatures, involved_players, Dealer_VK, Signature, Delta, e, n);
+                full_message_decryption(buffer, Hashed_Message1, Hashed_Message2, Message, Hashed_Message, Message_size, nbr_players, needed_signatures, involved_players,  Signature, q);
 
                 free(Message);
-                mpz_clears(Signature, Delta, Hashed_Message, Dealer_VK, n, e, NULL);
+                mpz_clears(Signature, Hashed_Message,Hashed_Message1,Hashed_Message2, q, g,gd, NULL);
 
                 break;
 
-            case 'v':
-            case 'V':
-
-                option_chosen = 1;
-
-                mpz_inits(Signature, Hashed_Message, e, n);
-
-                Message = NULL;
-                Message_size = verifier_get_Message(&Message);
-                verifier_get_Signature(Signature);
-
-                get_public_keys(n, e);
-                main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
-
-                valid_signature = verify_message_signature(Hashed_Message, Signature, e, n);
-
-                if (valid_signature)
-                    printf("La signature du message est valide\n\n");
-
-                free(Message);
-                mpz_clears(Signature, Hashed_Message, e, n, NULL);
-
-                break;
-
+            
             case 'r':
             case 'R':
 
@@ -206,7 +180,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
             
             default:
 
-                printf("Entez un caractère valide.\n");
+                printf("Entrez un caractère valide.\n");
                 break;
         }
     }
@@ -224,7 +198,7 @@ int main()
 
     ask_dealer_parameters(buffer); // Requête sur la modification des clés du dealer
 
-    printf("En cas de première utilisation du programme ou suite à la modification des clés du dealer, il est obligatoire de générer (à nouveau) les clés des joueurs. Sinon, il est possible de signer un message directement à partir des secrets des joueurs déjà générés.\n");
+    printf("En cas de première utilisation du programme ou suite à la modification des clés du dealer, il est obligatoire de générer (à nouveau) les clés des joueurs. Sinon, il est possible de déchiffrer un message directement à partir des secrets des joueurs déjà générés.\n");
 
     int program_running = 1;
 

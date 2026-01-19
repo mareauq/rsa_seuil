@@ -16,9 +16,9 @@ void get_player_secret_key(mpz_t Player_SK, unsigned int Player) // Récupère l
     fclose(fptr);
 }
 
-void gen_player_decryption(mpz_t Player_Signature, mpz_t Player_SK, mpz_t Hashed_Message1, mpz_t q) // Génère le déchiffrement partielle d'un joueur et la stock dans Player_Signature
+void gen_player_decryption(mpz_t Player_Signature, mpz_t Player_SK, mpz_t Hashed_Message1) // Génère le déchiffrement partielle d'un joueur et la stock dans Player_Signature
 {
-    mpz_powm(Player_Signature, Hashed_Message1, Player_SK, q);
+    fq_pow(Player_Signature, Hashed_Message1, Player_SK);
 }
 
 void send_player_decryption(unsigned int Player, mpz_t Player_Signature)
@@ -35,13 +35,13 @@ void send_player_decryption(unsigned int Player, mpz_t Player_Signature)
     fclose(fptr);
 }
 
-void full_player_decryption(unsigned int Player, mpz_t Hashed_Message1, mpz_t q)
+void full_player_decryption(unsigned int Player, mpz_t Hashed_Message1)
 {
     mpz_t Player_SK, Player_Signature;
     mpz_inits(Player_SK, Player_Signature, NULL);
 
     get_player_secret_key(Player_SK, Player);
-    gen_player_decryption(Player_Signature, Player_SK, Hashed_Message1, q);
+    gen_player_decryption(Player_Signature, Player_SK, Hashed_Message1);
 
     send_player_decryption(Player, Player_Signature);
 

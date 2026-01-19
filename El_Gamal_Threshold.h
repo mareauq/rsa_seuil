@@ -6,6 +6,14 @@
 #include <unistd.h>
 #include <gmp.h>
 
+#ifndef EL_GAMAL_THRESHOLD_H
+#define EL_GAMAL_THRESHOLD_H
+
+#include <stdint.h>
+#include <string.h>
+
+#endif
+
 /* Macros */
 
 #define DEFAULT_NBR_PLAYERS 5 // Nombre de joueurs par défaut prévus par le programme
@@ -23,7 +31,11 @@
 #define MAX_HEXA_MPZ_SIZE 500 // Nombre maximal de caractères nécessaire pour écrire tous les entiers du programme en héxadécimal
 // Cette valeur doit être supérieure à 1024/4 = 256 (2 symbole hexadécimaux par octet)
 
+#define NB_WORDS 20   // 20 * 64 = 1280 bits
 
+typedef struct {
+    uint64_t w[NB_WORDS];
+} gf2_1279;
 
 /* Prototypes : Fonctions principales */
 
@@ -31,7 +43,7 @@
 void ask_dealer_parameters(char*);
 unsigned int ask_Message(unsigned char**);
 void ask_involved_players(unsigned int*, unsigned int, unsigned int);
-void ask_players_and_signatures(char*, unsigned int*, unsigned int*);
+void ask_players_and_decryption(char*, unsigned int*, unsigned int*);
 int ask_action(char*, unsigned int*, unsigned int*);
 
 
@@ -47,7 +59,7 @@ void free_mpz_ptr(mpz_t*, unsigned int);
 void eval_poly_mod(mpz_t, mpz_t*, unsigned int, mpz_t, mpz_t);
 void eval_poly_mod_ui(mpz_t, mpz_t*, unsigned int, unsigned long, mpz_t);
 int lambda_function(mpz_t, unsigned int*, unsigned int, unsigned int, unsigned int, mpz_t);
-int L_function(mpz_t, unsigned int*, unsigned int, unsigned int, mpz_t);
+int L_function(mpz_t, unsigned int*, unsigned int, unsigned int, unsigned int);
 unsigned char* mpz_concatenation_to_str(mpz_t*, unsigned int);
 
 
@@ -67,7 +79,7 @@ void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int Messag
 
 void get_private_primes(mpz_t, mpz_t);
 void write_public_keys(mpz_t, mpz_t);
-void get_public_keys(mpz_t, mpz_t);
+void get_public_keys(mpz_t, mpz_t, mpz_t);
 void change_dealer_parameters();
 
 
@@ -86,19 +98,19 @@ void clear_players_files_and_folders(unsigned int);
 void get_private_keys(mpz_t, mpz_t);
 void write_public_keys(mpz_t, mpz_t);
 void get_player_secret_key(mpz_t, unsigned int);
-void gen_player_decryption(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
+void gen_player_decryption(mpz_t, mpz_t, mpz_t, mpz_t);
 void send_player_decryption(unsigned int, mpz_t);
-void full_player_decryption(unsigned int, mpz_t, mpz_t);
+void full_player_decryption(unsigned int, mpz_t);
 
 
 /* Prototypes : Fonctions du coordinateur */
 
 void get_players_param(unsigned int*, unsigned int*);
-void full_message_decryption(char*, mpz_t, unsigned char*, unsigned int, unsigned int*, unsigned int*, unsigned int*, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
+void full_message_decryption(char*, mpz_t, mpz_t, unsigned char*, mpz_t, unsigned int, unsigned int*, unsigned int*, unsigned int*, mpz_t, mpz_t);
 void send_signed_message(unsigned char*, mpz_t);
-int request_players_decryption(mpz_t, char*, unsigned int*, unsigned int, unsigned char*, unsigned int, mpz_t, mpz_t);
+int request_players_decryption(mpz_t, char*, unsigned int*, unsigned int, unsigned char*, unsigned int, mpz_t);
 void coord_get_decryption(unsigned int, mpz_t);
-void combine_decryption(mpz_t, mpz_t, unsigned int*, unsigned int, mpz_t, mpz_t, mpz_t);
+void combine_decryption(mpz_t, mpz_t, unsigned int*, unsigned int, mpz_t, mpz_t);
 void clear_coord_files(unsigned int*, unsigned int);
 
 /* Prototypes : Fonctions du vérifieur */
@@ -106,3 +118,13 @@ void clear_coord_files(unsigned int*, unsigned int);
 unsigned int verifier_get_Message(unsigned char**);
 void verifier_get_Signature(mpz_t);
 int verify_message_signature(mpz_t, mpz_t);
+
+/* Prototypes : Lois du corps F_q */
+// On choisit F_q = F_2[X]/<P> avec P = X^1279 + X^319 + 1 qui est irréductible
+
+void fq_reduce(mpz_t)
+void fq_mul(mpz_t, const mpz_t, const mpz_t)
+void fq_square(mpz_t, const mpz_t)
+void fq_pow(mpz_t, const mpz_t, const mpz_t)
+long fq_deg(const mpz_t)
+int fq_inv(mpz_t, const mpz_t)
