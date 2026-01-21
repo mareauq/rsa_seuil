@@ -77,6 +77,7 @@ void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int Messag
 
 /* Prototypes : Fonctions de gestions des secrets (Dealer) */
 
+void get_private_key(mpz_t);
 void get_private_primes(mpz_t, mpz_t);
 void write_public_keys(mpz_t, mpz_t);
 void get_public_keys(mpz_t, mpz_t, mpz_t);
@@ -122,9 +123,9 @@ int verify_message_signature(mpz_t, mpz_t);
 /* Prototypes : Lois du corps F_q */
 // On choisit F_q = F_2[X]/<P> avec P = X^1279 + X^319 + 1 qui est irréductible
 
-void fq_reduce(mpz_t)
-void fq_mul(mpz_t, const mpz_t, const mpz_t)
-void fq_square(mpz_t, const mpz_t)
-void fq_pow(mpz_t, const mpz_t, const mpz_t)
-long fq_deg(const mpz_t)
-int fq_inv(mpz_t, const mpz_t)
+void fq_reduce(mpz_t);
+void fq_mul(mpz_t, const mpz_t, const mpz_t);
+void fq_square(mpz_t, const mpz_t);
+void fq_pow(mpz_t, const mpz_t, const mpz_t);
+long fq_deg(const mpz_t);
+int fq_inv(mpz_t, const mpz_t);

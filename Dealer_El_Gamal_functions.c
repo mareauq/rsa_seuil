@@ -3,6 +3,18 @@
 
 /* Gestion des secrets de l'autorité */
 
+void get_private_key(mpz_t d) // Associe à d la valeur contenu dans le fichier correspondant
+{
+    FILE* fptr;
+    fptr = fopen("./Dealer_El_Gamal/Private_key.txt", "r");
+
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(d, key, HEXA_BASE);
+
+    fclose(fptr);
+}
 
 void write_public_keys(mpz_t q, mpz_t g, mpz_t gd) // Ecrit dans le fichier correspondant la clé publique (q,g,g^d)
 {
@@ -145,6 +157,7 @@ void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_sig
     mpz_sub_ui(q1,q,1);
 
     get_public_keys(q, g, gd);
+    get_private_key(d);
 
     // On génère les clés
 
