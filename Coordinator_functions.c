@@ -1,6 +1,8 @@
 #include "RSA_Threshold.h"
+#include "El_Gamal_Threshold.h"
 
 
+/* Fonctions relatives au coordinateur dans la signature RSA */
 
 void get_players_param(unsigned int* nbr_player, unsigned int* needed_signature)
 {
@@ -21,7 +23,7 @@ void get_players_param(unsigned int* nbr_player, unsigned int* needed_signature)
 void get_player_verification_key(mpz_t Player_VK, unsigned int Player) // Récupère la clé de vérification du joueur Player
 {
     char key_path[60];
-    snprintf(key_path, sizeof(key_path), "./Player_%d/Verification_key_%d.txt", Player, Player);
+    snprintf(key_path, sizeof(key_path), "./Player_%d/RSA_Verification_key_%d.txt", Player, Player);
 
     FILE* fptr;
     fptr = fopen(key_path, "r");
@@ -36,7 +38,7 @@ void get_player_verification_key(mpz_t Player_VK, unsigned int Player) // Récup
 
 void get_dealer_verification_key(mpz_t Dealer_VK) // Récupère la clé de vérification du Dealer
 {
-    char* key_path = "./Dealer/Verification_key.txt";
+    char* key_path = "./Dealer/RSA_Verification_key.txt";
 
     FILE* fptr;
     fptr = fopen(key_path, "r");
@@ -248,21 +250,21 @@ void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* inv
 void full_message_signature(char* buffer, mpz_t Hashed_Message, unsigned char* Message, unsigned int Message_size, unsigned int* nbr_players, unsigned int* needed_signatures, unsigned int* involved_players, mpz_t Dealer_VK, mpz_t Signature, mpz_t Delta, mpz_t e, mpz_t n)
 {
     main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
-
-    involved_players = malloc((*needed_signatures) * sizeof(unsigned int));
-    ask_involved_players(involved_players, *needed_signatures, *nbr_players);
-    request_players_signatures_and_PoC(Dealer_VK, buffer, involved_players, *needed_signatures, Message, Message_size, Delta, n);
-
-    if (check_all_PoC(involved_players, *needed_signatures, Dealer_VK, Hashed_Message, Delta, n))
+    
+    if (request_players_signatures_and_PoC(Dealer_VK, buffer, involved_players, *needed_signatures, Message, Message_size, Delta, n))
     {
-        combine_signatures(Signature, Hashed_Message,involved_players, *needed_signatures, Delta, e, n);
-        send_signed_message(Message, Signature);
+        if (check_all_PoC(involved_players, *needed_signatures, Dealer_VK, Hashed_Message, Delta, n))
+        {
+            combine_signatures(Signature, Hashed_Message,involved_players, *needed_signatures, Delta, e, n);
+            send_signed_message(Message, Signature);
 
-        printf("Message et signature envoyés au vérifieur.\n \n");
+            printf("Message et signature envoyés au vérifieur.\n \n");
+        }
+
+        clear_rsa_coord_files(involved_players, *needed_signatures);
     }
 
-    clear_coord_files(involved_players, *needed_signatures);
-    free(involved_players);
+
 }
 
 void send_signed_message(unsigned char* Message, mpz_t Signature)
@@ -284,7 +286,7 @@ void send_signed_message(unsigned char* Message, mpz_t Signature)
     fclose(fptr);
 }
 
-void clear_coord_files(unsigned int* involved_players, unsigned int needed_signatures)
+void clear_rsa_coord_files(unsigned int* involved_players, unsigned int needed_signatures)
 {
     char file_path[60];
 
@@ -302,4 +304,143 @@ void clear_coord_files(unsigned int* involved_players, unsigned int needed_signa
         if (remove(file_path))
             printf("Problème durant la suppressions à l'adresse : %s\n", file_path);
     }
+}
+
+
+/* Fonctions relatives au coordinateur dans le chiffrement El Gamal */
+
+void coord_get_Encrypted_Message_and_PK(mpz_t Encrypted_Message, mpz_t Sender_PK)
+{
+    FILE* fptr;
+    fptr = fopen("./Coordinator/Encrypted_Message.txt", "r");
+
+    char Encrypted_Message_str[MAX_HEXA_MPZ_SIZE]; 
+
+    fgets(Encrypted_Message_str, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Encrypted_Message, Encrypted_Message_str, HEXA_BASE);
+
+    fgets(Encrypted_Message_str, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Sender_PK, Encrypted_Message_str, HEXA_BASE);
+
+    fclose(fptr);
+}
+
+void coord_get_decrypted(unsigned int Player, mpz_t Player_Decrypted)
+{
+    char decrypted_path[60];
+    snprintf(decrypted_path, sizeof(decrypted_path), "./Coordinator/Player_Decrypted_%d.txt", Player);
+
+    FILE* fptr;
+    fptr = fopen(decrypted_path, "r");
+
+    char decrypted_str[MAX_HEXA_MPZ_SIZE]; 
+
+    fgets(decrypted_str, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Player_Decrypted, decrypted_str, HEXA_BASE);
+
+    fclose(fptr);
+}
+
+int request_players_decrypted(char* buffer, unsigned int* Players_involved, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial)
+{    
+    for (int i = 0; i < needed_decrypted; i++)
+    {
+        unsigned int Player = Players_involved[i];
+        
+        printf("Requête de déchiffrement au joueur %u :\n \n", Player);
+        printf("Voulez-vous déchiffrer le message reçu ?\n");
+        printf("o/O : Oui     n/N : Non\n");
+
+        char option;
+        int option_chosen = 0;
+
+        while (!option_chosen)
+        {
+            fgets(buffer, BUFFER_SIZE, stdin);
+            option = buffer[0];
+            switch (option)
+            {
+                case 'o':
+                case 'O':
+
+                    option_chosen = 1;
+                    full_player_decryption(Player, Sender_PK, Primitive_Polynomial);
+                    
+                    break;
+
+                case 'n':
+                case 'N':
+
+                    option_chosen = 1;
+                    printf("Le joueur %u a refusé de déchiffrer\n", Player);
+
+                    return 0;
+
+                default:
+
+                printf("Entez un caractère valide.\n");
+                break;
+            }
+        }
+    }
+
+    return 1;
+}
+
+void combine_decrypted(mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Primitive_Polynomial, mpz_t Generator, mpz_t Group_order) // Cette fonction rend le représentant dans le corps Fq du message
+{
+    mpz_t tmp, z, Player_Decrypted;
+    mpz_inits(tmp, z, Player_Decrypted, NULL);
+
+    mpz_set_ui(z, 1);
+
+    for (int i = 0; i < needed_decrypted; i++)
+    {
+        
+        unsigned int Player = involved_players[i];
+        coord_get_decrypted(Player, Player_Decrypted);
+
+        L_function(tmp, involved_players, needed_decrypted, 0, Player, Group_order);
+
+        polynomial_pow_mod(tmp, Player_Decrypted, tmp, Primitive_Polynomial);
+        polynomial_mul_mod(z, z, tmp, Primitive_Polynomial);
+    }
+
+    polynomial_invert_mod(z, z, Primitive_Polynomial);
+    polynomial_mul_mod(Message_mpz, z, Encrypted_Message, Primitive_Polynomial);
+
+    mpz_clears(tmp, z, Player_Decrypted, NULL);
+}
+
+void clear_el_gamal_coord_files(unsigned int* involved_players, unsigned int needed_decrypted)
+{
+    char file_path[60];
+
+    for (int i = 0; i < needed_decrypted; i++)
+    {
+        unsigned int Player = involved_players[i];
+
+        snprintf(file_path, sizeof(file_path), "./Coordinator/Player_Decrypted_%d.txt", Player);
+        
+        if (remove(file_path))
+            printf("Problème durant la suppressions à l'adresse : %s\n", file_path);
+    }
+}
+
+int full_message_decryption(char* buffer, mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial, mpz_t Generator)
+{
+    mpz_t Group_order;
+    mpz_init(Group_order);
+
+    int decryption_accepted = request_players_decrypted(buffer, involved_players, needed_decrypted, Sender_PK, Primitive_Polynomial);
+
+    compute_group_order(Primitive_Polynomial, Group_order);
+
+    if (decryption_accepted)
+        combine_decrypted(Message_mpz, Encrypted_Message, involved_players, needed_decrypted, Primitive_Polynomial, Generator, Group_order);
+    
+    clear_el_gamal_coord_files(involved_players, needed_decrypted);
+    mpz_clear(Group_order);
+
+    return decryption_accepted;
 }

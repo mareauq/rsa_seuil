@@ -31,17 +31,6 @@
 
 
 
-/* Prototypes : Fonctions principales */
-
-
-void ask_dealer_parameters(char*);
-unsigned int ask_Message(unsigned char**);
-void ask_involved_players(unsigned int*, unsigned int, unsigned int);
-void ask_players_and_signatures(char*, unsigned int*, unsigned int*);
-int ask_action(char*, unsigned int*, unsigned int*);
-
-
-
 /* Prototypes : Fonctions générales */
 
 unsigned int str_len(unsigned char*);
@@ -69,29 +58,29 @@ void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int Messag
 
 /* Prototypes : Fonctions de gestions des secrets (Dealer) */
 
-void get_private_primes(mpz_t, mpz_t);
-void write_public_keys(mpz_t, mpz_t);
-void get_public_keys(mpz_t, mpz_t);
-void change_dealer_parameters();
+void get_rsa_private_primes(mpz_t, mpz_t);
+void write_rsa_public_keys(mpz_t, mpz_t);
+void get_rsa_public_keys(mpz_t, mpz_t);
+void change_dealer_rsa_parameters();
 
 
 
 /* Prototypes : Fonctions de gestions des clés des joueurs (Dealer) */
-mpz_t* gen_players_sk(unsigned int, unsigned int, mpz_t, mpz_t);
-mpz_t* gen_players_vk(unsigned int, mpz_t*, mpz_t);
+mpz_t* gen_rsa_players_sk(unsigned int, unsigned int, mpz_t, mpz_t);
+mpz_t* gen_rsa_players_vk(unsigned int, mpz_t*, mpz_t);
 void write_players_sk(unsigned int, mpz_t*);
-void write_players_vk(unsigned int, mpz_t*);
-void full_players_and_keys_gen(unsigned int, unsigned int);
+void write_rsa_players_vk(unsigned int, mpz_t*);
+void full_rsa_players_and_keys_gen(unsigned int, unsigned int);
 void send_players_param(unsigned int, unsigned int);
-void clear_players_files_and_folders(unsigned int);
+void clear_rsa_players_files_and_folders(unsigned int);
 
 
 
 /* Prototypes : Fonctions des joueurs */
 
 void get_private_keys(mpz_t, mpz_t);
-void write_public_keys(mpz_t, mpz_t);
-void get_player_secret_key(mpz_t, unsigned int);
+void write_rsa_public_keys(mpz_t, mpz_t);
+void get_rsa_player_secret_key(mpz_t, unsigned int);
 void gen_player_signature(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
 void gen_proof_of_correctness(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t, mpz_t);
 void send_player_signature(unsigned int, mpz_t);
@@ -112,7 +101,7 @@ void coord_get_Signature(unsigned int, mpz_t);
 void coord_get_PoC(unsigned int, mpz_t, mpz_t);
 int check_all_PoC(unsigned int*, unsigned int, mpz_t, mpz_t, mpz_t, mpz_t);
 void combine_signatures(mpz_t, mpz_t, unsigned int*, unsigned int, mpz_t, mpz_t, mpz_t);
-void clear_coord_files(unsigned int*, unsigned int);
+void clear_rsa_coord_files(unsigned int*, unsigned int);
 
 /* Prototypes : Fonctions du vérifieur */
 

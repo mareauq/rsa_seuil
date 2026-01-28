@@ -1,15 +1,16 @@
 #include "RSA_Threshold.h"
+#include "El_Gamal_Threshold.h"
 
 
-/* Gestion des secrets de l'autorité */
 
+/* Fonctions relatives au dealer pour le programme de signature RSA */
 
 // Les nombres premiers en jeux sont de la forme 2p' + 1 avec p' premier
 
-void get_private_primes(mpz_t p, mpz_t q) // Associe à p et q les valeurs des nombres premiers de Sophie Germain sûrs contenus dans le fichier associé
+void get_rsa_private_primes(mpz_t p, mpz_t q) // Associe à p et q les valeurs des nombres premiers de Sophie Germain sûrs contenus dans le fichier associé
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Private_primes.txt", "r");
+    fptr = fopen("./Dealer/RSA_Private_primes.txt", "r");
 
     char key[MAX_HEXA_MPZ_SIZE]; 
 
@@ -21,7 +22,7 @@ void get_private_primes(mpz_t p, mpz_t q) // Associe à p et q les valeurs des n
     fclose(fptr);
 }
 
-void write_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant la clé publique (n,e) avec n = p*q
+void write_rsa_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant la clé publique (n,e) avec n = p*q
 {
     FILE* fptr;
     fptr = fopen("./Dealer/Public_key.txt", "w");
@@ -38,10 +39,10 @@ void write_public_keys(mpz_t n, mpz_t e) // Ecrit dans le fichier correspondant 
     fclose(fptr);
 }
 
-void get_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'exposant de chiffrement contenus dans le fichier correspondant
+void get_rsa_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'exposant de chiffrement contenus dans le fichier correspondant
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Public_keys.txt", "r");
+    fptr = fopen("./Dealer/RSA_Public_keys.txt", "r");
 
     char key[MAX_HEXA_MPZ_SIZE];
 
@@ -54,7 +55,7 @@ void get_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e l'e
     fclose(fptr);
 }
 
-void change_dealer_parameters()
+void change_dealer_rsa_parameters()
 {
     FILE* fptr;
     
@@ -67,7 +68,7 @@ void change_dealer_parameters()
 
     // Modification des nombres premiers cachés
 
-    fptr = fopen("./Dealer/Private_primes.txt", "w");
+    fptr = fopen("./Dealer/RSA_Private_primes.txt", "w");
 
     printf("Veuillez écrire p en hexadécimal : ");
     fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
@@ -87,7 +88,7 @@ void change_dealer_parameters()
 
     // Modification des clés publiques
 
-    fptr = fopen("./Dealer/Public_keys.txt", "w");
+    fptr = fopen("./Dealer/RSA_Public_keys.txt", "w");
 
     mpz_mul(n, p, q);
     mpz_get_str(key, HEXA_BASE, n);
@@ -109,7 +110,7 @@ void change_dealer_parameters()
 /* Gestion des secrets des joueurs */
 
 
-mpz_t* gen_players_sk(unsigned int nbr_players, unsigned int needed_signatures, mpz_t d, mpz_t m) // Génère aléatoirement les clés secrètes de chaque joueur et les stock dans un tableau
+mpz_t* gen_rsa_players_sk(unsigned int nbr_players, unsigned int needed_signatures, mpz_t d, mpz_t m) // Génère aléatoirement les clés secrètes de chaque joueur et les stock dans un tableau
 {
     gmp_randstate_t rand;
     gmp_randinit_default(rand);
@@ -138,7 +139,7 @@ mpz_t* gen_players_sk(unsigned int nbr_players, unsigned int needed_signatures, 
     return SKs;
 }
 
-mpz_t* gen_players_vk(unsigned int nbr_players, mpz_t* SKs, mpz_t n) // Génère aléatoirement les clés de vérification du dealer et de chaque joueur et les stock dans un tableau
+mpz_t* gen_rsa_players_vk(unsigned int nbr_players, mpz_t* SKs, mpz_t n) // Génère aléatoirement les clés de vérification du dealer et de chaque joueur et les stock dans un tableau
 {
     gmp_randstate_t rand;
     gmp_randinit_default(rand);
@@ -171,10 +172,10 @@ La méthode choisie ici permet de générer des nombres aléatoires variés sans
 
 
 
-void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier à chaque joueur et un fichier contenant sa clé secrète
+void write_rsa_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier à chaque joueur et un fichier contenant sa clé secrète
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Secret_key.txt", "w");
+    fptr = fopen("./Dealer/RSA_Secret_key.txt", "w");
 
     char key[MAX_HEXA_MPZ_SIZE];
     mpz_get_str(key, HEXA_BASE, SKs[0]);
@@ -183,13 +184,13 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
     fclose(fptr);
 
     char folder_path[20] = "./Player_0"; 
-    char file_path[50] = "./Player_0/Secret_key_0.txt"; 
+    char file_path[50] = "./Player_0/RSA_Secret_key_0.txt"; 
     for (int i = 1; i <= nbr_players; i++)
     {
         snprintf(folder_path, sizeof(folder_path), "Player_%d", i);
         mkdir(folder_path, 0777);
 
-        snprintf(file_path, sizeof(file_path), "./Player_%d/Secret_key_%d.txt", i, i);
+        snprintf(file_path, sizeof(file_path), "./Player_%d/RSA_Secret_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
         mpz_get_str(key, HEXA_BASE, SKs[i]);
         fprintf(fptr, "%s\n", key);
@@ -197,10 +198,10 @@ void write_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier
     } 
 }
 
-void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque joueur sa clé de vérification (doit être appellée après write_players_sk)
+void write_rsa_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque joueur sa clé de vérification (doit être appellée après write_rsa_players_sk)
 {
     FILE* fptr;
-    fptr = fopen("./Dealer/Verification_key.txt", "w");
+    fptr = fopen("./Dealer/RSA_Verification_key.txt", "w");
 
     char key[MAX_HEXA_MPZ_SIZE];
     mpz_get_str(key, HEXA_BASE, VKs[0]);
@@ -208,10 +209,10 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
     fprintf(fptr, "%s\n", key);
     fclose(fptr);
  
-    char file_path[60] = "./Player_0/Verification_key_0.txt"; 
+    char file_path[60] = "./Player_0/RSA_Verification_key_0.txt"; 
     for (int i = 1; i <= nbr_players; i++)
     {
-        snprintf(file_path, sizeof(file_path), "./Player_%d/Verification_key_%d.txt", i, i);
+        snprintf(file_path, sizeof(file_path), "./Player_%d/RSA_Verification_key_%d.txt", i, i);
         fptr = fopen(file_path, "w");
         mpz_get_str(key, HEXA_BASE, VKs[i]);
         fprintf(fptr, "%s\n", key);
@@ -222,13 +223,13 @@ void write_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à chaque 
 /* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
 En pratique, le nombre de joueurs est très largement inférieur à 2^15 */
 
-void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
+void full_rsa_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
 {
     mpz_t p, q, n, m, e, d;
     mpz_inits(p, q, n, m, e, d, NULL);
 
-    get_private_primes(p, q);
-    get_public_keys(n, e);
+    get_rsa_private_primes(p, q);
+    get_rsa_public_keys(n, e);
 
     // On calcule p' = (p - 1)/2 et q' = (q - 1)/2, m = p' * q' et d tel que ed = 1 mod m
 
@@ -244,11 +245,11 @@ void full_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_sig
 
     // On génère les clés
 
-    mpz_t* SKs = gen_players_sk(nbr_players, needed_signatures, d, m);
-    mpz_t* VKs = gen_players_vk(nbr_players, SKs, n);
+    mpz_t* SKs = gen_rsa_players_sk(nbr_players, needed_signatures, d, m);
+    mpz_t* VKs = gen_rsa_players_vk(nbr_players, SKs, n);
 
-    write_players_sk(nbr_players, SKs);
-    write_players_vk(nbr_players, VKs);
+    write_rsa_players_sk(nbr_players, SKs);
+    write_rsa_players_vk(nbr_players, VKs);
 
     free_mpz_ptr(SKs, nbr_players + 1);
     free_mpz_ptr(VKs, nbr_players + 1);
@@ -267,18 +268,18 @@ void send_players_param(unsigned int nbr_players, unsigned int needed_signatures
     fclose(fptr);
 }
 
-void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
+void clear_rsa_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
 {
     char path[60];
 
     for (int Player = 1; Player <= nbr_players; Player++)
     {
-        snprintf(path, sizeof(path), "./Player_%d/Secret_key_%d.txt", Player, Player);
+        snprintf(path, sizeof(path), "./Player_%d/RSA_Secret_key_%d.txt", Player, Player);
         
         if (remove(path))
             printf("Problème durant la suppression à l'adresse : %s\n", path);
 
-        snprintf(path, sizeof(path), "./Player_%d/Verification_key_%d.txt", Player, Player);
+        snprintf(path, sizeof(path), "./Player_%d/RSA_Verification_key_%d.txt", Player, Player);
         
         if (remove(path))
             printf("Problème durant la suppression à l'adresse : %s\n", path);
@@ -292,3 +293,203 @@ void clear_players_files_and_folders(unsigned int nbr_players) // Supprime les f
 
 
 
+
+/* Fonctions relatives au dealer pour le programme de signature RSA */
+
+
+void get_el_gamal_private_key(mpz_t Dealer_SK) // Associe à d la valeur contenu dans le fichier correspondant
+{
+    FILE* fptr;
+    fptr = fopen("./Dealer/El_Gamal_Private_key.txt", "r");
+
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Dealer_SK, key, HEXA_BASE);
+
+    fclose(fptr);
+}
+
+void write_el_gamal_public_keys(mpz_t q, mpz_t g, mpz_t gd) // Ecrit dans le fichier correspondant la clé publique (q,g,g^d)
+{
+    FILE* fptr;
+    fptr = fopen("./Dealer_El_Gamal/Public_keys.txt", "w");
+
+    char key[MAX_HEXA_MPZ_SIZE];
+    mpz_get_str(key, HEXA_BASE, q);
+
+    fprintf(fptr, "%s\n", key);
+
+    mpz_get_str(key, HEXA_BASE, g);
+
+    fprintf(fptr, "%s\n", key);
+
+    mpz_get_str(key, HEXA_BASE, gd);
+
+    fprintf(fptr, "%s\n", key);
+
+    fclose(fptr);
+}
+
+void get_el_gamal_public_keys(mpz_t Primitive_Polynomial, mpz_t Generator, mpz_t Dealer_PK) // Associe à chaque partie de la clé publique sa valeur contenue dans le fichier correspondant
+{
+    FILE* fptr;
+    fptr = fopen("./Dealer/El_Gamal_Public_keys.txt", "r");
+
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Primitive_Polynomial, key, HEXA_BASE);
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Generator, key, HEXA_BASE);
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Dealer_PK, key, HEXA_BASE);
+
+    fclose(fptr);
+}
+
+void change_dealer_el_gamal_parameters()
+{
+    FILE* fptr;
+    
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    mpz_t Primitive_Polynomial, Generator, Dealer_PK, Dealer_SK;
+    mpz_inits(Primitive_Polynomial, Generator, Dealer_PK, Dealer_SK, NULL);
+
+    printf("Il est rappelé que le corps dans lequel on se fixe doit avoir pour cardinal q une puisance de 2 telle que q-1 soit premier. Pour des raisons de sécurité, il est conseillé de choisir la puissance supérieure à 1000.\n");
+
+    fptr = fopen("./Dealer/El_Gamal_Public_keys.txt", "w");
+
+    printf("Veuillez écrire la représention du polynôme primitif associé à votre corps en hexadécimal : ");
+    fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
+
+    fprintf(fptr, "%s", key);
+
+    mpz_set_str(Primitive_Polynomial, key, HEXA_BASE);
+
+    printf("Veuillez écrire la représentation de votre générateur g en hexadécimal : ");
+    fgets(key, MAX_HEXA_MPZ_SIZE, stdin);
+
+    fprintf(fptr, "%s", key);
+
+    mpz_set_str(Generator, key, HEXA_BASE);
+
+    printf("Un nouveau couple de clés secrète/publique est créé en conséquence.\n");
+
+    gmp_randstate_t rand;
+    gmp_randinit_default(rand);
+
+    unsigned long seed = clock();
+    gmp_randseed_ui(rand, seed);
+
+    mpz_urandomb(Dealer_SK, rand, polynomial_deg(Primitive_Polynomial));
+    polynomial_pow_mod(Dealer_PK, Generator, Dealer_SK, Primitive_Polynomial);
+
+    mpz_get_str(key, HEXA_BASE, Dealer_PK);
+    fprintf(fptr, "%s\n", key);
+
+    gmp_randclear(rand);
+
+    fclose(fptr);
+
+    fptr = fopen("./Dealer/El_Gamal_Private_key.txt", "w");
+
+    mpz_get_str(key, HEXA_BASE, Dealer_SK);
+    fprintf(fptr, "%s\n", key);
+
+    fclose(fptr);
+
+    mpz_clears(Primitive_Polynomial, Generator, Dealer_PK, Dealer_SK, NULL);
+}
+
+
+mpz_t* gen_el_gamal_players_sk(unsigned int nbr_players, unsigned int needed_decrypted, mpz_t Dealer_SK, mpz_t Group_order) // Génère aléatoirement les clés secrètes de chaque joueur et les stock dans un tableau
+{
+    gmp_randstate_t rand;
+    gmp_randinit_default(rand);
+
+    unsigned long seed = clock();
+    gmp_randseed_ui(rand, seed);
+
+    mpz_t* coeffs = init_mpz_ptr(needed_decrypted + 1);
+    mpz_set(coeffs[0], Dealer_SK);
+
+    for (int i = 1; i < needed_decrypted; i++)
+    {
+        mpz_urandomm(coeffs[i], rand, Group_order);
+    }
+
+    mpz_t* SKs = init_mpz_ptr(nbr_players + 1);
+
+    for (int i = 0; i <= nbr_players; i++)
+    {
+        eval_poly_mod_ui(SKs[i], coeffs, needed_decrypted, i, Group_order);
+    }
+
+    gmp_randclear(rand);
+    free_mpz_ptr(coeffs, needed_decrypted + 1);
+
+    return SKs;
+}
+
+void write_el_gamal_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer un dossier à chaque joueur et un fichier contenant sa clé secrète
+{
+    FILE* fptr;
+
+    char key[MAX_HEXA_MPZ_SIZE];
+
+    char folder_path[30] = "./Gamal_Player_0"; 
+    char file_path[60] = "./Gamal_Player_0/El_Gamal_Secret_key_0.txt"; 
+    for (int i = 1; i <= nbr_players; i++)
+    {
+        snprintf(folder_path, sizeof(folder_path), "Player_%d", i);
+        mkdir(folder_path, 0777);
+
+        snprintf(file_path, sizeof(file_path), "./Player_%d/El_Gamal_Secret_key_%d.txt", i, i);
+        fptr = fopen(file_path, "w");
+        mpz_get_str(key, HEXA_BASE, SKs[i]);
+        fprintf(fptr, "%s\n", key);
+        fclose(fptr);
+    } 
+}
+
+void full_el_gamal_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
+{
+    mpz_t Dealer_PK, Dealer_SK, Primitive_Polynomial, Generator, Group_Order;
+    mpz_inits(Dealer_PK, Dealer_SK, Primitive_Polynomial, Generator, Group_Order, NULL);
+
+    get_el_gamal_private_key(Dealer_SK);
+    get_el_gamal_public_keys(Primitive_Polynomial, Generator, Dealer_PK);
+
+    compute_group_order(Primitive_Polynomial, Group_Order);
+
+    // On génère les clés
+
+    mpz_t* SKs = gen_el_gamal_players_sk(nbr_players, needed_signatures, Dealer_SK, Group_Order);
+    write_el_gamal_players_sk(nbr_players, SKs);
+
+    free_mpz_ptr(SKs, nbr_players + 1);
+
+    mpz_clears(Dealer_PK, Dealer_SK, Primitive_Polynomial, Generator, Group_Order, NULL);
+}
+
+void clear_el_gamal_players_files_and_folders(unsigned int nbr_players) // Supprime les fichiers et dossiers associés à chaque joueur
+{
+    char path[60];
+
+    for (int Player = 1; Player <= nbr_players; Player++)
+    {
+        snprintf(path, sizeof(path), "./Player_%d/El_Gamal_Secret_key_%d.txt", Player, Player);
+        
+        if (remove(path))
+            printf("Problème durant la suppression à l'adresse : %s\n", path);
+
+        snprintf(path, sizeof(path), "Player_%d", Player);
+        
+        if (rmdir(path))
+            printf("Problème durant la suppression du dossier : %s\n", path);
+    }
+}

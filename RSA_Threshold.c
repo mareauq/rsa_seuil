@@ -21,7 +21,7 @@ void ask_dealer_parameters(char* buffer)
             case 'O':
 
                 option_chosen = 1;
-                change_dealer_parameters();
+                change_dealer_rsa_parameters();
                 break;
             
             case 'n':
@@ -135,7 +135,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
                 option_chosen = 1;
                 ask_players_and_signatures(buffer, nbr_players, needed_signatures);
                 send_players_param(*nbr_players, *needed_signatures);
-                full_players_and_keys_gen(*nbr_players, *needed_signatures);
+                full_rsa_players_and_keys_gen(*nbr_players, *needed_signatures);
 
                 printf("Génération des joueurs et de leurs clés terminée.\n \n");
                 
@@ -152,13 +152,17 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
                 mpz_inits(Signature, Delta, Hashed_Message, Dealer_VK, n, e, NULL);
 
                 get_players_param(nbr_players, needed_signatures);
-                get_public_keys(n, e);
+                get_rsa_public_keys(n, e);
                 get_dealer_verification_key(Dealer_VK);
 
                 mpz_fac_ui(Delta, *nbr_players);
 
+                involved_players = malloc((*needed_signatures) * sizeof(unsigned int));
+                ask_involved_players(involved_players, *needed_signatures, *nbr_players);
+
                 full_message_signature(buffer, Hashed_Message, Message, Message_size, nbr_players, needed_signatures, involved_players, Dealer_VK, Signature, Delta, e, n);
 
+                free(involved_players);
                 free(Message);
                 mpz_clears(Signature, Delta, Hashed_Message, Dealer_VK, n, e, NULL);
 
@@ -175,13 +179,13 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
                 Message_size = verifier_get_Message(&Message);
                 verifier_get_Signature(Signature);
 
-                get_public_keys(n, e);
+                get_rsa_public_keys(n, e);
                 main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
 
                 valid_signature = verify_message_signature(Hashed_Message, Signature, e, n);
 
                 if (valid_signature)
-                    printf("La signature du message est valide\n\n");
+                    printf("\nLa signature du message est valide\n\n");
 
                 free(Message);
                 mpz_clears(Signature, Hashed_Message, e, n, NULL);
@@ -194,7 +198,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
                 option_chosen = 1;
 
                 get_players_param(nbr_players, needed_signatures);
-                clear_players_files_and_folders(*nbr_players);
+                clear_rsa_players_files_and_folders(*nbr_players);
 
                 break;
 

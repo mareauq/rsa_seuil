@@ -140,6 +140,39 @@ int lambda_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigne
     return 1;
 }
 
+int L_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigned int i, unsigned int j, mpz_t Group_order)
+{
+    mpz_t tmp;
+    mpz_init(tmp);
+
+    mpz_set_ui(res, 1);
+    mpz_set_ui(tmp, 1);
+
+    for (int k = 0; k < set_size; k++)
+    {
+        int j_prime = set[k];
+
+        if (i == j_prime)
+        {
+            printf("La valeur de i ne doit pas faire partie de l'ensemble set. On renvoit zéro.\n");
+            return 0;
+        }
+        
+        if (j != j_prime)
+        {
+            mpz_mul_si(res, res, (int)i - j_prime);
+            mpz_mul_si(tmp, tmp, (int)j - j_prime);
+        }
+    }
+
+    mpz_invert(tmp, tmp, Group_order);
+    mpz_mul(res, res, tmp);
+    
+    mpz_clear(tmp);
+
+    return 1;
+}
+
 /* Fonctions relatives aux entier de gmp */
 
 
@@ -248,6 +281,22 @@ void bytes_to_mpz(const unsigned char* Bytes, unsigned int BytesLen, mpz_t Resul
     mpz_add_ui(Result, Result, Bytes[BytesLen - 1]);
 }
 
+char* mpz_to_bytes(mpz_t Number_mpz)
+{
+    size_t count = 0;
+
+    unsigned char *Bytes = mpz_export(NULL, &count, 1, 1, 1, 0, Number_mpz);
+    char *Bytes_str = malloc(count + 1);
+
+    for (size_t i = 0; i < count; ++i)
+        Bytes_str[i] = (char)Bytes[i];
+
+    Bytes_str[count] = '\0';
+
+    free(Bytes);
+    return Bytes_str;
+}
+
 void main_msg_hash_to_mpz(const unsigned char* Message, unsigned int MessageByteLen, mpz_t Hashed_Message, mpz_t n) // Renvoit le hashé d'un message de taille MessageByteLen sous forme d'un entier mpz de taille MAIN_HASHED_MESSAGES_BYTES_LEN
 {
     unsigned char output[MAIN_HASHED_MESSAGES_BYTES_LEN];
@@ -267,3 +316,149 @@ void secondary_msg_hash_to_mpz(const unsigned char* Message, unsigned int Messag
     bytes_to_mpz(output, SECONDARY_HASHED_MESSAGES_BYTES_LEN, Hashed_Message);
 
 }
+
+
+/* Lois du corps F_q pour q = 2^n */
+
+/* Les polynômes en étant à coefficients binaires, il est naturel de les représenter par des nombres : les coefficients du polynôme 
+coïncident alors avec la représentation binaire de ce nombre */
+
+int polynomial_deg(mpz_t a) // Calcule le degré de a
+{
+    if (mpz_cmp_ui(a, 0) == 0)
+        return -1;
+    
+    return (int)(mpz_sizeinbase(a, 2) - 1);
+}
+
+void compute_group_order(mpz_t Primitive_Polynomial, mpz_t Group_Order)
+{
+    int deg = polynomial_deg(Primitive_Polynomial);
+    mpz_set_ui(Group_Order, 1);
+    mpz_mul_2exp(Group_Order, Group_Order, deg); //Group_Order = 2^n
+    mpz_sub_ui(Group_Order, Group_Order, 1); //Group_Order = 2^n - 1
+}
+
+void polynomial_mod(mpz_t P, mpz_t Q) // Réduit P modulo Q
+{
+    mpz_t tmp;
+    mpz_init(tmp);
+    
+    int n = polynomial_deg(P);
+    int m = polynomial_deg(Q);
+
+    while (n >= m)
+    {
+        mpz_mul_2exp(tmp, Q, n - m);
+        mpz_xor(P, P, tmp);
+        n = polynomial_deg(P);
+    }
+
+    mpz_clear(tmp);
+}
+
+// Pour notre structure, l'addition consiste en un simple XOR et donc n'est pas spécifiquement implémentée.
+
+void polynomial_mul_mod(mpz_t res, mpz_t a, mpz_t b, mpz_t P) // Multiplication a*b modulo P 
+{
+
+    if (mpz_cmp_ui(a, 0) == 0 || mpz_cmp_ui(b, 0) == 0)
+        mpz_set_ui(res, 0);
+    
+    else
+    {
+        mpz_t tmp, shifted;
+        mpz_inits(tmp, shifted, NULL);
+
+        int deg = polynomial_deg(b);
+
+        for (int i = 0; i <= deg; i++)
+        {
+            if (mpz_tstbit(b, i))
+            {
+                mpz_mul_2exp(shifted, a, i); // a << i
+                mpz_xor(tmp, tmp, shifted);
+            }
+        }
+
+        polynomial_mod(tmp, P);
+        mpz_set(res, tmp);
+
+        mpz_clears(tmp, shifted, NULL);
+
+
+    }
+}
+
+
+void polynomial_square_mod(mpz_t res, mpz_t a, mpz_t P) // Calcul de a^2 modulo P (à optimiser)
+{
+    polynomial_mul_mod(res, a, a, P);
+}
+
+
+void polynomial_pow_mod(mpz_t res, mpz_t a, mpz_t exp, mpz_t P) // Exponentiation a^exp modulo P
+{
+    mpz_t tmp, base;
+    mpz_init_set_ui(tmp, 1);
+    mpz_init_set(base, a);
+
+    for (long i = 0; i < mpz_sizeinbase(exp, 2); i++) {
+        if (mpz_tstbit(exp, i))
+        {
+            polynomial_mul_mod(tmp, tmp, base, P);
+        }
+        
+        polynomial_square_mod(base, base, P);
+    }
+
+    mpz_set(res, tmp);
+    mpz_clear(tmp);
+    mpz_clear(base);
+}
+
+
+void polynomial_invert_mod(mpz_t res, mpz_t a, mpz_t P) // Renvoit r = a^{-1} mod P
+{
+    mpz_t u, v, g1, g2, tmp;
+    mpz_inits(u, v, g1, g2, tmp, NULL);
+
+    mpz_set(u, a);
+    mpz_set_ui(g1, 1);
+    mpz_set(v, P);
+
+    int deg_u;
+    int deg_v;
+    int t;
+
+    while (mpz_cmp_ui(u, 1) != 0)
+    {
+        deg_u = polynomial_deg(u);
+        deg_v = polynomial_deg(v);
+
+        if (deg_u < deg_v) 
+        {
+            mpz_swap(u, v);
+            mpz_swap(g1, g2);
+            t = deg_u; 
+            deg_u = deg_v; 
+            deg_v = t;
+        }
+
+        int shift = deg_u - deg_v;
+
+        /* u = u + (v << shift) */
+        mpz_mul_2exp(tmp, v, shift);
+        mpz_xor(u, u, tmp);
+
+        /* g1 = g1 + (g2 << shift) */
+        mpz_mul_2exp(tmp, g2, shift);
+        mpz_xor(g1, g1, tmp);
+    }
+
+    polynomial_mod(g1, P);
+    mpz_set(res, g1);
+
+    mpz_clears(u, v, g1, g2, tmp, NULL);
+}
+

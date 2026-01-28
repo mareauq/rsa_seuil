@@ -1,9 +1,12 @@
 #include "RSA_Threshold.h"
+#include "El_Gamal_Threshold.h"
 
-void get_player_secret_key(mpz_t Player_SK, unsigned int Player) // Récupère la clé secrète du joueur Player
+/* Fonctions relatives aux joueurs pour le programme de signature RSA */
+
+void get_rsa_player_secret_key(mpz_t Player_SK, unsigned int Player) // Récupère la clé secrète du joueur Player
 {
     char key_path[50];
-    snprintf(key_path, sizeof(key_path), "./Player_%d/Secret_key_%d.txt", Player, Player);
+    snprintf(key_path, sizeof(key_path), "./Player_%d/RSA_Secret_key_%d.txt", Player, Player);
 
     FILE* fptr;
     fptr = fopen(key_path, "r");
@@ -15,6 +18,7 @@ void get_player_secret_key(mpz_t Player_SK, unsigned int Player) // Récupère l
 
     fclose(fptr);
 }
+
 
 void gen_player_signature(mpz_t Player_Signature, mpz_t Player_SK, mpz_t Hashed_Message, mpz_t Delta, mpz_t n) // Génère la signature d'un joueur et la stock dans Player_Signature
 {
@@ -29,6 +33,7 @@ void gen_player_signature(mpz_t Player_Signature, mpz_t Player_SK, mpz_t Hashed_
     mpz_clear(exp);
 }
 
+
 void send_player_signature(unsigned int Player, mpz_t Player_Signature)
 {
     FILE* fptr;
@@ -42,7 +47,6 @@ void send_player_signature(unsigned int Player, mpz_t Player_Signature)
     free(Signature_str);
     fclose(fptr);
 }
-
 
 
 void gen_proof_of_correctness(mpz_t Player_signature, mpz_t Player_SK, mpz_t Player_VK, mpz_t Dealer_VK, mpz_t Proof_z, mpz_t Proof_c, mpz_t Hashed_Message, mpz_t Delta, mpz_t n) // Génère la preuve d'exactitude associée à la signature d'un joueur
@@ -109,7 +113,7 @@ void full_player_signature_and_PoC(mpz_t Dealer_VK, unsigned int Player, unsigne
 
     main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
 
-    get_player_secret_key(Player_SK, Player);
+    get_rsa_player_secret_key(Player_SK, Player);
     gen_player_signature(Player_Signature, Player_SK, Hashed_Message, Delta, n);
 
     get_player_verification_key(Player_VK, Player);
@@ -119,4 +123,55 @@ void full_player_signature_and_PoC(mpz_t Dealer_VK, unsigned int Player, unsigne
     send_player_PoC(Player, Proof_z, Proof_c);
 
     mpz_clears(Hashed_Message, Player_SK, Player_VK, Player_Signature, Proof_z, Proof_c, NULL);
+}
+
+/* Fonctions relatives aux joueurs pour le programme de chiffrement El Gamal */
+
+void get_el_gamal_player_secret_key(mpz_t Player_SK, unsigned int Player) // Récupère la clé secrète du joueur Player
+{
+    char key_path[50];
+    snprintf(key_path, sizeof(key_path), "./Player_%d/El_Gamal_Secret_key_%d.txt", Player, Player);
+
+    FILE* fptr;
+    fptr = fopen(key_path, "r");
+
+    char key[MAX_HEXA_MPZ_SIZE]; 
+
+    fgets(key, MAX_HEXA_MPZ_SIZE, fptr);
+    mpz_set_str(Player_SK, key, HEXA_BASE);
+
+    fclose(fptr);
+}
+
+
+void gen_player_decrypted(mpz_t Player_Decrypted, mpz_t Player_SK, mpz_t Sender_PK, mpz_t Primitive_Polynomial) // Génère le déchiffrement partielle d'un joueur et le stock dans Player_Signature
+{
+    polynomial_pow_mod(Player_Decrypted, Sender_PK, Player_SK, Primitive_Polynomial);
+}
+
+void send_player_decrypted(unsigned int Player, mpz_t Player_Decrypted)
+{
+    FILE* fptr;
+    char file_path[60] = "./Coordinator/Player_Decrypted_0.txt"; 
+    snprintf(file_path, sizeof(file_path), "./Coordinator/Player_Decrypted_%d.txt", Player);
+
+    fptr = fopen(file_path, "w");
+    char* Decrypted_str = mpz_get_str(NULL, HEXA_BASE, Player_Decrypted);
+    fprintf(fptr, "%s\n", Decrypted_str);
+
+    free(Decrypted_str);
+    fclose(fptr);
+}
+
+void full_player_decryption(unsigned int Player, mpz_t Sender_PK, mpz_t Primitive_Polynomial)
+{
+    mpz_t Player_SK, Player_Decrypted;
+    mpz_inits(Player_SK, Player_Decrypted, NULL);
+
+    get_el_gamal_player_secret_key(Player_SK, Player);
+    gen_player_decrypted(Player_Decrypted, Player_SK, Sender_PK, Primitive_Polynomial);
+
+    send_player_decrypted(Player, Player_Decrypted);
+
+    mpz_clears(Player_SK, Player_Decrypted, NULL);
 }
