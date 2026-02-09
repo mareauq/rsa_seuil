@@ -1,7 +1,7 @@
 #include "El_Gamal_Threshold.h"
 
 
-void encrypt_message(unsigned char* Message, unsigned int Message_size, mpz_t Dealer_PK, mpz_t Sender_PK, mpz_t Encrypted_Message, mpz_t Primitive_Polynomial, mpz_t Generator) //
+void encrypt_message(unsigned char* Message, unsigned int Message_size, mpz_t Dealer_PK, mpz_t Sender_PK, mpz_t Encrypted_Message, mpz_t Primitive_Polynomial, mpz_t Generator) // Chiffre Message selon le protocole attendu
 {
     mpz_t tmp;
     mpz_init(tmp);
@@ -23,7 +23,7 @@ void encrypt_message(unsigned char* Message, unsigned int Message_size, mpz_t De
     gmp_randclear(rand);
 }
 
-void send_encrypted_message(unsigned char* Message, unsigned int Message_size, mpz_t Dealer_PK, mpz_t Sender_PK, mpz_t Encrypted_Message, mpz_t Primitive_Polynomial, mpz_t Generator)
+void send_encrypted_message(unsigned char* Message, unsigned int Message_size, mpz_t Dealer_PK, mpz_t Sender_PK, mpz_t Encrypted_Message, mpz_t Primitive_Polynomial, mpz_t Generator) // Envoie le chiffré au coordinateur
 {
     
     FILE* fptr;

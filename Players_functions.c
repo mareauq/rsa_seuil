@@ -90,7 +90,7 @@ void gen_proof_of_correctness(mpz_t Player_signature, mpz_t Player_SK, mpz_t Pla
 }
 
 
-void send_player_PoC(unsigned int Player, mpz_t Proof_z, mpz_t Proof_c)
+void send_player_PoC(unsigned int Player, mpz_t Proof_z, mpz_t Proof_c) // Envoie au coordinateur la PoC associée à la signature partielle
 {
     FILE* fptr;
     char file_path[60] = "./Coordinator/Player_PoC_0.txt"; 
@@ -106,7 +106,7 @@ void send_player_PoC(unsigned int Player, mpz_t Proof_z, mpz_t Proof_c)
     fclose(fptr);
 }
 
-void full_player_signature_and_PoC(mpz_t Dealer_VK, unsigned int Player, unsigned char* Message, unsigned int Message_size, mpz_t Delta, mpz_t n)
+void full_player_signature_and_PoC(mpz_t Dealer_VK, unsigned int Player, unsigned char* Message, unsigned int Message_size, mpz_t Delta, mpz_t n) // Effectue l'ensemble des actions nécessaires à la génération de la signature partielle et de la PoC
 {
     mpz_t Hashed_Message, Player_SK, Player_VK, Player_Signature, Proof_z, Proof_c;
     mpz_inits(Hashed_Message, Player_SK, Player_VK, Player_Signature, Proof_z, Proof_c, NULL);
@@ -144,7 +144,7 @@ void get_el_gamal_player_secret_key(mpz_t Player_SK, unsigned int Player) // Ré
 }
 
 
-void gen_player_decrypted(mpz_t Player_Decrypted, mpz_t Player_SK, mpz_t Sender_PK, mpz_t Primitive_Polynomial) // Génère le déchiffrement partielle d'un joueur et le stock dans Player_Signature
+void gen_player_decrypted(mpz_t Player_Decrypted, mpz_t Player_SK, mpz_t Sender_PK, mpz_t Primitive_Polynomial) // Génère le déchiffrement partiel d'un joueur et le stock dans Player_Signature
 {
     polynomial_pow_mod(Player_Decrypted, Sender_PK, Player_SK, Primitive_Polynomial);
 }
@@ -163,7 +163,7 @@ void send_player_decrypted(unsigned int Player, mpz_t Player_Decrypted)
     fclose(fptr);
 }
 
-void full_player_decryption(unsigned int Player, mpz_t Sender_PK, mpz_t Primitive_Polynomial)
+void full_player_decryption(unsigned int Player, mpz_t Sender_PK, mpz_t Primitive_Polynomial) // Effectue l'ensemble des actions nécessaires au déchiffrement partiel
 {
     mpz_t Player_SK, Player_Decrypted;
     mpz_inits(Player_SK, Player_Decrypted, NULL);

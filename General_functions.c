@@ -167,6 +167,7 @@ int L_function(mpz_t res, unsigned int* set, unsigned int set_size, unsigned int
 
     mpz_invert(tmp, tmp, Group_order);
     mpz_mul(res, res, tmp);
+    mpz_mod(res, res, Group_order);
     
     mpz_clear(tmp);
 

@@ -55,7 +55,7 @@ void get_rsa_public_keys(mpz_t n, mpz_t e) // Associe à n le module RSA et à e
     fclose(fptr);
 }
 
-void change_dealer_rsa_parameters()
+void change_dealer_rsa_parameters() // Modifie les élément privés liés au Dealer pour la signature RSA
 {
     FILE* fptr;
     
@@ -223,7 +223,7 @@ void write_rsa_players_vk(unsigned int nbr_players, mpz_t* VKs) // Ajoute à cha
 /* Les tailles des tableaux sont choisies pour pouvoir contenir au minimum n'importe quel int.
 En pratique, le nombre de joueurs est très largement inférieur à 2^15 */
 
-void full_rsa_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
+void full_rsa_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures) // Effectue l'ensemble des actions liées à la génération des joueurs pour RSA
 {
     mpz_t p, q, n, m, e, d;
     mpz_inits(p, q, n, m, e, d, NULL);
@@ -350,7 +350,7 @@ void get_el_gamal_public_keys(mpz_t Primitive_Polynomial, mpz_t Generator, mpz_t
     fclose(fptr);
 }
 
-void change_dealer_el_gamal_parameters()
+void change_dealer_el_gamal_parameters() // Modifie les élément privés liés au Dealer pour le chiffrement El Gamal
 {
     FILE* fptr;
     
@@ -456,7 +456,7 @@ void write_el_gamal_players_sk(unsigned int nbr_players, mpz_t* SKs) // Créer u
     } 
 }
 
-void full_el_gamal_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures)
+void full_el_gamal_players_and_keys_gen(unsigned int nbr_players, unsigned int needed_signatures) // Effectue l'ensemble des actions liées à la génération des joueurs pour El Gamal
 {
     mpz_t Dealer_PK, Dealer_SK, Primitive_Polynomial, Generator, Group_Order;
     mpz_inits(Dealer_PK, Dealer_SK, Primitive_Polynomial, Generator, Group_Order, NULL);

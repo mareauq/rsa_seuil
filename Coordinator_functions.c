@@ -98,7 +98,7 @@ int check_proof_of_correctness(mpz_t Player_signature, mpz_t Player_VK, mpz_t De
     return 0;
 }
 
-void coord_get_Signature(unsigned int Player, mpz_t Player_Signature)
+void coord_get_Signature(unsigned int Player, mpz_t Player_Signature) // Récupère la signature générée par Player
 {
     char signature_path[60];
     snprintf(signature_path, sizeof(signature_path), "./Coordinator/Player_Signature_%d.txt", Player);
@@ -134,7 +134,7 @@ void coord_get_PoC(unsigned int Player, mpz_t Proof_z, mpz_t Proof_c)
 }
 
 
-int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures, mpz_t Dealer_VK, mpz_t Hashed_Message, mpz_t Delta, mpz_t n)
+int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures, mpz_t Dealer_VK, mpz_t Hashed_Message, mpz_t Delta, mpz_t n) // Vérifie la preuve d'exactitude de toutes les signatures
 {
     mpz_t Player_Signature, Player_VK, Proof_z, Proof_c;
     mpz_inits(Player_Signature, Player_VK, Proof_z, Proof_c, NULL);
@@ -164,7 +164,7 @@ int check_all_PoC(unsigned int* involved_players, unsigned int needed_signatures
     return 1;
 }
 
-int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, unsigned char* Message, unsigned int Message_size, mpz_t Delta, mpz_t n)
+int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned int* Players_involved, unsigned int needed_signatures, unsigned char* Message, unsigned int Message_size, mpz_t Delta, mpz_t n) // Demande aux joueurs leur signature et preuve d'exactitude
 {    
     for (int i = 0; i < needed_signatures; i++)
     {
@@ -211,7 +211,7 @@ int request_players_signatures_and_PoC(mpz_t Dealer_VK, char* buffer, unsigned i
     return 1;
 }
 
-void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* involved_players, unsigned int needed_signatures, mpz_t Delta, mpz_t e, mpz_t n)
+void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* involved_players, unsigned int needed_signatures, mpz_t Delta, mpz_t e, mpz_t n) // Mise en commun des signatures des joueurs pour générer la signature finale
 {
     mpz_t tmp, w, a, b, e_prime, Player_Signature;
     mpz_inits(tmp, w, a, b, e_prime,  Player_Signature, NULL);
@@ -247,7 +247,7 @@ void combine_signatures(mpz_t Signature, mpz_t Hashed_Message, unsigned int* inv
     mpz_clears(tmp, w, a, b, e_prime, Player_Signature, NULL);
 }
 
-void full_message_signature(char* buffer, mpz_t Hashed_Message, unsigned char* Message, unsigned int Message_size, unsigned int* nbr_players, unsigned int* needed_signatures, unsigned int* involved_players, mpz_t Dealer_VK, mpz_t Signature, mpz_t Delta, mpz_t e, mpz_t n)
+void full_message_signature(char* buffer, mpz_t Hashed_Message, unsigned char* Message, unsigned int Message_size, unsigned int* nbr_players, unsigned int* needed_signatures, unsigned int* involved_players, mpz_t Dealer_VK, mpz_t Signature, mpz_t Delta, mpz_t e, mpz_t n) // Effectue l'ensemble des actions liées à la signature
 {
     main_msg_hash_to_mpz(Message, Message_size, Hashed_Message, n);
     
@@ -267,7 +267,7 @@ void full_message_signature(char* buffer, mpz_t Hashed_Message, unsigned char* M
 
 }
 
-void send_signed_message(unsigned char* Message, mpz_t Signature)
+void send_signed_message(unsigned char* Message, mpz_t Signature) // Envoi de la signature au Verifieur
 {
     FILE* fptr;
 
@@ -286,7 +286,7 @@ void send_signed_message(unsigned char* Message, mpz_t Signature)
     fclose(fptr);
 }
 
-void clear_rsa_coord_files(unsigned int* involved_players, unsigned int needed_signatures)
+void clear_rsa_coord_files(unsigned int* involved_players, unsigned int needed_signatures) // Supprimes les fichiers du Coordinateurs liés à la signature
 {
     char file_path[60];
 
@@ -309,7 +309,7 @@ void clear_rsa_coord_files(unsigned int* involved_players, unsigned int needed_s
 
 /* Fonctions relatives au coordinateur dans le chiffrement El Gamal */
 
-void coord_get_Encrypted_Message_and_PK(mpz_t Encrypted_Message, mpz_t Sender_PK)
+void coord_get_Encrypted_Message_and_PK(mpz_t Encrypted_Message, mpz_t Sender_PK) // Récupère le couple associé au message chiffré envoyé par l'expéditeur
 {
     FILE* fptr;
     fptr = fopen("./Coordinator/Encrypted_Message.txt", "r");
@@ -325,7 +325,7 @@ void coord_get_Encrypted_Message_and_PK(mpz_t Encrypted_Message, mpz_t Sender_PK
     fclose(fptr);
 }
 
-void coord_get_decrypted(unsigned int Player, mpz_t Player_Decrypted)
+void coord_get_decrypted(unsigned int Player, mpz_t Player_Decrypted) // Récupère le déchiffrement partiel de Player
 {
     char decrypted_path[60];
     snprintf(decrypted_path, sizeof(decrypted_path), "./Coordinator/Player_Decrypted_%d.txt", Player);
@@ -341,7 +341,7 @@ void coord_get_decrypted(unsigned int Player, mpz_t Player_Decrypted)
     fclose(fptr);
 }
 
-int request_players_decrypted(char* buffer, unsigned int* Players_involved, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial)
+int request_players_decrypted(char* buffer, unsigned int* Players_involved, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial) // Demande aux joueurs leur déchiffrement partiel
 {    
     for (int i = 0; i < needed_decrypted; i++)
     {
@@ -387,7 +387,7 @@ int request_players_decrypted(char* buffer, unsigned int* Players_involved, unsi
     return 1;
 }
 
-void combine_decrypted(mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Primitive_Polynomial, mpz_t Generator, mpz_t Group_order) // Cette fonction rend le représentant dans le corps Fq du message
+void combine_decrypted(mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Primitive_Polynomial, mpz_t Generator, mpz_t Group_order) // Mise en commun des déchiffrements partiels pour déchiffrer entièrement le message
 {
     mpz_t tmp, z, Player_Decrypted;
     mpz_inits(tmp, z, Player_Decrypted, NULL);
@@ -412,7 +412,7 @@ void combine_decrypted(mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int*
     mpz_clears(tmp, z, Player_Decrypted, NULL);
 }
 
-void clear_el_gamal_coord_files(unsigned int* involved_players, unsigned int needed_decrypted)
+void clear_el_gamal_coord_files(unsigned int* involved_players, unsigned int needed_decrypted) // Supprimes les fichiers du Coordinateurs liés au déchiffrement
 {
     char file_path[60];
 
@@ -427,7 +427,7 @@ void clear_el_gamal_coord_files(unsigned int* involved_players, unsigned int nee
     }
 }
 
-int full_message_decryption(char* buffer, mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial, mpz_t Generator)
+int full_message_decryption(char* buffer, mpz_t Message_mpz, mpz_t Encrypted_Message, unsigned int* involved_players, unsigned int needed_decrypted, mpz_t Sender_PK, mpz_t Primitive_Polynomial, mpz_t Generator) // Effectue l'ensemble des actions liées au déchiffrement
 {
     mpz_t Group_order;
     mpz_init(Group_order);

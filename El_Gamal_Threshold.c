@@ -2,7 +2,7 @@
 
 /* Fonctions principales du programme */
 
-void ask_dealer_parameters(char* buffer)
+void ask_dealer_parameters(char* buffer) // Permet à l'utilisateur de modifier les paramètres du Dealer
 {
     char option;
     int option_chosen = 0;
@@ -38,7 +38,7 @@ void ask_dealer_parameters(char* buffer)
     }
 }
 
-void ask_players_and_decrypted(char* buffer, unsigned int* nbr_players, unsigned int* needed_decrypted)
+void ask_players_and_decrypted(char* buffer, unsigned int* nbr_players, unsigned int* needed_decrypted) // Permet à l'utilisateur de modifier le nombre de joueurs et de déchiffrements nécessaires
 {
     int valid_quantity = 0;
                 
@@ -90,7 +90,7 @@ unsigned int ask_Message(unsigned char** Message) // Affecte le message entré �
     return Message_size;
 }
 
-void ask_involved_players(unsigned int* involved_players, unsigned int nbr_involved_players, unsigned int nbr_players)
+void ask_involved_players(unsigned int* involved_players, unsigned int nbr_involved_players, unsigned int nbr_players) // Demande à l'utilisateur les joueurs impliqués dans le déchiffrement
 {
     char* involved_players_str = malloc(BUFFER_SIZE * (nbr_involved_players));
                 
@@ -108,7 +108,7 @@ void ask_involved_players(unsigned int* involved_players, unsigned int nbr_invol
     free(involved_players_str);
 }
 
-int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_decrypted)
+int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_decrypted) // Demande à l'utilisateur l'action à effectuer puis appelle les fonctions associée à l'action
 {
     mpz_t Dealer_PK, Sender_PK, Message_mpz, Encrypted_Message, Primitive_Polynomial, Generator;
     unsigned char* Message = NULL;
@@ -220,6 +220,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_dec
 }
 
 
+/* Programme */
 
 int main()
 {
@@ -239,42 +240,4 @@ int main()
     }
 
     return 0;
-
-
-
-    /* ZONE DE TESTS */
-
-    // mpz_t v, a, b, c, r;
-    // mpz_inits(v, a, b, c, r, NULL);
-
-    // mpz_setbit(v, 1279);
-    // mpz_setbit(v, 216);
-    // mpz_setbit(v, 0);
-
-    // gmp_printf("v = %Zx \n", v);
-
-    // // mpz_setbit(b, 12);
-    // // mpz_setbit(b, 342);
-    // // mpz_setbit(b, 1344);
-    // // mpz_setbit(b, 1234);
-    // // mpz_setbit(b, 2045);
-    // // polynomial_invert_mod(c, b, v);
-
-    // // gmp_printf("b = %Zd \n", b);
-    // // gmp_printf("c = %Zd \n", c);
-    // // gmp_printf("v = %Zx \n", v);
-
-    // mpz_set_str(a, "5f7e69fa6644493f302bb069bd111a6304067a266374229aee63873d3c2c1f49fb59ba0d62398f9b7ed3f4ad5b1f7cb9932b64a5431fc13d26fa7f0623ec9367ae8a3976a04b72578d1e942d02c87e9d9bb865fc3c5d45a779ded9b4187ddfcd9c80e3643b5cc0e8490672b40b89edd22b0272d441fc79a42d3c525c408563d6be3693521b214f0a4d447dcd8abc66e537f1fa6edf2be76c7347c03095b21d42", HEXA_BASE);
-    // mpz_set_str(b, "2", HEXA_BASE);
-    // polynomial_pow_mod(r, b, a, v);
-
-    // // mpz_set_str(r, "10407932194664399081925240327364085538615262247266704805319112350403608059673360298012239441732324184842421613954281007791383566248323464908139906605677320762924129509389220345773183349661583550472959420547689811211693677147548478866962501384438260291732348885311160828538416585028255604667292825408879256888265733056225297083999787749911284413851571673647296763605040985567184212197376", 10);
-    // // gmp_printf("r = %Zd \n", r);
-    // // polynomial_mod(r, v);
-    // gmp_printf("r = %Zx \n", r);
-
-
-    // mpz_clears(v, a, b, c, r, NULL);
-
-    // return 0;
 }

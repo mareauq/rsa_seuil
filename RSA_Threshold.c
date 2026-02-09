@@ -2,7 +2,7 @@
 
 /* Fonctions principales du programme */
 
-void ask_dealer_parameters(char* buffer)
+void ask_dealer_parameters(char* buffer) // Permet à l'utilisateur de modifier les paramètres du Dealer
 {
     char option;
     int option_chosen = 0;
@@ -38,7 +38,7 @@ void ask_dealer_parameters(char* buffer)
     }
 }
 
-void ask_players_and_signatures(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures)
+void ask_players_and_signatures(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures) // Permet à l'utilisateur de modifier le nombre de joueurs et de signatures nécessaires
 {
     int valid_quantity = 0;
                 
@@ -90,7 +90,7 @@ unsigned int ask_Message(unsigned char** Message) // Affecte le message entré �
     return Message_size;
 }
 
-void ask_involved_players(unsigned int* involved_players, unsigned int nbr_involved_players, unsigned int nbr_players)
+void ask_involved_players(unsigned int* involved_players, unsigned int nbr_involved_players, unsigned int nbr_players) // Demande à l'utilisateur les joueurs impliqués dans la signature
 {
     char* involved_players_str = malloc(BUFFER_SIZE * (nbr_involved_players));
                 
@@ -108,7 +108,7 @@ void ask_involved_players(unsigned int* involved_players, unsigned int nbr_invol
     free(involved_players_str);
 }
 
-int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures)
+int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_signatures) // Demande à l'utilisateur l'action à effectuer puis appelle les fonctions associée à l'action
 {
     mpz_t Signature, Delta, Hashed_Message, Dealer_VK, n, e;
     unsigned char* Message = NULL;
@@ -219,6 +219,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_sig
 }
 
 
+/* Programme */
 
 int main()
 {

@@ -1,7 +1,7 @@
 #include "RSA_Threshold.h"
 //#include "El_Gamal_Threshold.h"
 
-unsigned int verifier_get_Message(unsigned char** Message)
+unsigned int verifier_get_Message(unsigned char** Message) // Récupère le message
 {
     FILE* fptr;
     fptr = fopen("./Verifier/Message.txt", "r");
@@ -33,7 +33,7 @@ unsigned int verifier_get_Message(unsigned char** Message)
     return Message_size;
 }
 
-void verifier_get_Signature(mpz_t Signature)
+void verifier_get_Signature(mpz_t Signature) // Récupère la signature
 {
     FILE* fptr;
     fptr = fopen("./Verifier/Signature.txt", "r");
@@ -46,7 +46,7 @@ void verifier_get_Signature(mpz_t Signature)
     fclose(fptr);
 }
 
-int verify_message_signature(mpz_t Hashed_Message, mpz_t Signature, mpz_t e, mpz_t n)
+int verify_message_signature(mpz_t Hashed_Message, mpz_t Signature, mpz_t e, mpz_t n) // Vérifie et renvoit la validité du message
 {
     mpz_t tmp;
     mpz_init(tmp);
