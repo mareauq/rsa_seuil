@@ -6,9 +6,9 @@ Ce projet universitaire a pour but l'implémentation d'une signature RSA et d'un
 
 ## Compilation 
 
-make Signature_RSA : compile le programme de signature RSA.
-make Chiffrement_El_Gamal : compile le programme de chiffrement El Gamal.
-make : compile les deux programmes d'un coup.
+make Signature_RSA : compile le programme de signature RSA.  
+make Chiffrement_El_Gamal : compile le programme de chiffrement El Gamal.  
+make : compile les deux programmes d'un coup.  
 
 ## Critique sur l'état actuel
 

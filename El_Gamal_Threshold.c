@@ -184,7 +184,7 @@ int ask_action(char* buffer, unsigned int* nbr_players, unsigned int* needed_dec
                     free(Message);
                 }
                 else
-                    printf("Le déchiffrage a été annulé\n");
+                    printf("Le déchiffrement a été annulé\n");
 
                 free(involved_players);
                 mpz_clears(Message_mpz, Dealer_PK, Encrypted_Message, Sender_PK, Primitive_Polynomial, Generator, NULL);
